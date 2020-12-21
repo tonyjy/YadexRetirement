@@ -1,2 +1,13 @@
 # YadexRetirement
-Yadex Retirement is a personal asset management desktop application built on .NET 5 WPF. which tracks, summarizes, categorizes, and aggregates your assets towards retirement.
+
+**Yadex Retirement** is an asset management desktop application to help you reach the goal of F.I.R.(E.) — *F*inancial *I*ndependence, *R*etir (*E*arly). 
+
+- Watch your assets performance
+- Categorize your assets
+- Summarize your assets 
+- Evaluate your assets towards retirement
+
+**Yadex Retirement** runs on Windows only. 
+
+Author: Tony Jiang
+https://tonyjy.blogspot.com/
