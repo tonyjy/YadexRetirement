@@ -1,11 +1,11 @@
 # YadexRetirement
 
-**Yadex Retirement** is an asset management desktop application to help you reach the goal of F.I.R.(E.) — *F*inancial *I*ndependence, *R*etir (*E*arly). 
+**Yadex Retirement** is an asset management desktop application to help you reach the goal of F.I.R.(E.) — *F*inancial *I*ndependence, *R*etire (*E*arly). 
 
-- Watch your assets performance
+- Track your assets performance
 - Categorize your assets
 - Summarize your assets 
-- Evaluate your assets towards retirement
+- Evaluate your retirement goal
 
 **Yadex Retirement** runs on Windows only. 
 
