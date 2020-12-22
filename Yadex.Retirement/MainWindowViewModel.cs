@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Windows;
 using Prism.Mvvm;
+using Yadex.Retirement.Dtos;
 using Yadex.Retirement.Models;
 using Yadex.Retirement.Services;
 
@@ -20,19 +24,35 @@ namespace Yadex.Retirement
 
         private void ResetViewModel()
         {
-            AllAssets = new ObservableCollection<Asset>();
+            AllAssets = new ObservableCollection<PerformanceDto>();
         }
 
         public void RefreshViewModel()
         {
-            AllAssets = new ObservableCollection<Asset>(AssetService.GetAllAssets());
+            var allAssets = AssetService.GetAllAssets();
+            var dtoList = new List<PerformanceDto>();
+            
+            for (var i = 0; i < allAssets.Length; i++)
+            {
+                var curItem = allAssets[i];
+                var nextItem = i < allAssets.Length - 1 ? allAssets[i + 1] : null;
+
+                var dto = new PerformanceDto(curItem);
+                if (nextItem != null && nextItem.AssetAmount != 0 && curItem.AssetName == nextItem.AssetName)
+                    dto.PercentValue = (curItem.AssetAmount - nextItem.AssetAmount) / nextItem.AssetAmount;
+                
+                dtoList.Add(dto);
+            }
+
+            AllAssets = new ObservableCollection<PerformanceDto>(dtoList);
+
         }
 
         #region Bindings
 
-        private ObservableCollection<Asset> _allAssets;
+        private ObservableCollection<PerformanceDto> _allAssets;
 
-        public ObservableCollection<Asset> AllAssets
+        public ObservableCollection<PerformanceDto> AllAssets
         {
             get => _allAssets;
             set
@@ -42,7 +62,7 @@ namespace Yadex.Retirement
             }
         }
 
-        public Asset AssetSelected
+        public PerformanceDto AssetSelected
         {
             get => _assetSelected;
             set
@@ -52,24 +72,9 @@ namespace Yadex.Retirement
             }
         }
 
-        private Asset _assetSelected;
+        private PerformanceDto _assetSelected;
         
         #endregion
 
-        #region Actions
-
-        public void AddAsset()
-        {
-            
-            var asset = new Asset(
-                Guid.NewGuid(),
-                "Merrill Personal Investment", 
-                223000m,
-                new DateTime(2020, 12, 15));
-            
-            AllAssets = new ObservableCollection<Asset>(new [] {asset});
-        }
-
-        #endregion
     }
 }

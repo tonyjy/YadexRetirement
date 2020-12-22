@@ -7,7 +7,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="Asset Dialog"
     Width="440"
-    Height="250"
+    Height="300"
     d:DataContext="{d:DesignInstance Type=local:AssetDialogViewModel}"
     WindowStartupLocation="CenterOwner"
     mc:Ignorable="d">
@@ -33,7 +33,7 @@
                 <RowDefinition Height="30" />
                 <RowDefinition Height="30" />
 
-                <RowDefinition Height="*" />
+                <RowDefinition Height="30" />
             </Grid.RowDefinitions>
 
             <Grid.ColumnDefinitions>
@@ -89,6 +89,19 @@
                 Grid.Column="2"
                 Margin="3"
                 Text="{Binding AssetAmount, UpdateSourceTrigger=PropertyChanged}" />
+
+            <Label
+                Grid.Row="4"
+                Grid.Column="1"
+                Content="Asset Type:"
+                FontWeight="SemiBold" />
+            <ComboBox
+                Grid.Row="4"
+                Grid.Column="2"
+                Margin="3"
+                IsEditable="False"
+                ItemsSource="{Binding AssetTypeList}"
+                Text="{Binding AssetType, UpdateSourceTrigger=PropertyChanged}" />
 
         </Grid>
 

@@ -24,7 +24,7 @@ namespace Yadex.Retirement
         private void OnMouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             var assetDialog = new AssetDialog
-                {Owner = this, DataContext = new AssetDialogViewModel(ViewModel, ViewModel.AssetSelected)};
+                {Owner = this, DataContext = new AssetDialogViewModel(ViewModel, ViewModel.AssetSelected.Asset)};
             assetDialog.ShowDialog();
         }
     }

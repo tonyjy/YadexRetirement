@@ -49,10 +49,11 @@
                 ItemsSource="{Binding AllAssets}"
                 MouseDoubleClick="OnMouseDoubleClick"
                 SelectedItem="{Binding AssetSelected}"
-                SelectionMode="Single">
+                SelectionMode="Single"
+                IsReadOnly="True">
                 <DataGrid.Columns>
                     <DataGridTextColumn
-                        Width="150"
+                        Width="80"
                         Binding="{Binding AssetDate}"
                         Header="Asset Date" />
                     <DataGridTextColumn
@@ -60,9 +61,21 @@
                         Binding="{Binding AssetName}"
                         Header="Asset Name" />
                     <DataGridTextColumn
-                        Width="100"
+                        Width="140"
+                        Binding="{Binding AssetType}"
+                        Header="Asset Type" />
+                    <DataGridTextColumn
+                        Width="50"
+                        Binding="{Binding PercentString}"
+                        Header="YTD" />
+                    <DataGridTextColumn
+                        Width="80"
                         Binding="{Binding AssetAmount}"
                         Header="Asset Value" />
+                    <DataGridTextColumn
+                        Width="120"
+                        Binding="{Binding LastUpdatedTime}"
+                        Header="Updated Time" />
                 </DataGrid.Columns>
             </DataGrid>
 

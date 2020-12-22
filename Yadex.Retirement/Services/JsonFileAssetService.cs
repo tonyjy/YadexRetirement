@@ -151,7 +151,12 @@ namespace Yadex.Retirement.Services
         /// <returns></returns>
         public Asset[] GetAllAssets()
         {
-            return JsonSerializer.Deserialize<Asset[]>(File.ReadAllText(CurrentFilePath));
+            return JsonSerializer.Deserialize<Asset[]>(File.ReadAllText(CurrentFilePath)) ?
+                .OrderBy(x => x.AssetType)
+                .ThenBy(x => x.AssetName)
+                .ThenByDescending(x => x.AssetDate)
+                .ThenByDescending(x => x.LastUpdatedTime)
+                .ToArray();
         }
 
         private void SaveAssets(List<Asset> allAssets, Asset oldAsset, Asset newAsset, string actionName)
@@ -176,8 +181,10 @@ namespace Yadex.Retirement.Services
 
             var newAssets =
                 allAssets
-                    .OrderBy(x => x.AssetName)
+                    .OrderBy(x => x.AssetType)
+                    .ThenBy(x => x.AssetName)
                     .ThenByDescending(x => x.AssetDate)
+                    .ThenByDescending(x => x.LastUpdatedTime)
                     .ToArray();
 
             // Backup the changes 

@@ -27,6 +27,8 @@ namespace Yadex.Retirement.Views
         {
             GetAssetNameList();
 
+            GetAssetTypeList();
+
             GetDefaultValues();
         }
 
@@ -38,6 +40,7 @@ namespace Yadex.Retirement.Views
                 AssetName = string.Empty;
                 AssetDate = DateTime.Today;
                 AssetAmount = 0m;
+                AssetType = AssetTypes.Cash;
                 return;
             }
 
@@ -45,6 +48,7 @@ namespace Yadex.Retirement.Views
             AssetName = OldAsset.AssetName;
             AssetDate = OldAsset.AssetDate;
             AssetAmount = OldAsset.AssetAmount;
+            AssetType = OldAsset.AssetType;
         }
 
         private void GetAssetNameList()
@@ -55,6 +59,18 @@ namespace Yadex.Retirement.Views
                 .Distinct()
                 .Where(x => !string.IsNullOrWhiteSpace(x))
                 .OrderBy(x => x));
+        }
+
+        private void GetAssetTypeList()
+        {
+            AssetTypeList = new ObservableCollection<string>(new []
+            {
+                AssetTypes.Cash,
+                AssetTypes.Fixed,
+                AssetTypes.Retirement401K,
+                AssetTypes.RetirementRrsp,
+                AssetTypes.RetirementPension
+            });
         }
 
         #region Bindings
@@ -120,7 +136,30 @@ namespace Yadex.Retirement.Views
         }
 
         private ObservableCollection<string> _assetNameList;
+        public ObservableCollection<string> AssetTypeList
+        {
+            get => _assetTypeList;
+            set
+            {
+                _assetTypeList = value;
+                RaisePropertyChanged();
+            }
+        }
 
+        private ObservableCollection<string> _assetTypeList;
+
+        public string AssetType
+        {
+            get => _assetType;
+            set
+            {
+                _assetType = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private string _assetType;
+        
         #endregion
 
         #region Actions
@@ -147,7 +186,7 @@ namespace Yadex.Retirement.Views
             if (errors.Count > 0)
                 return errors;
 
-            var newAsset = new Asset(AssetId, AssetName, AssetAmount, AssetDate);
+            var newAsset = new Asset(AssetId, AssetName, AssetAmount, AssetType, AssetDate);
 
             var (succeeded, errorMessage) = IsNew
                 ? Parent.AssetService.AddAsset(newAsset)
