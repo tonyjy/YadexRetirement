@@ -1,7 +1,6 @@
 using System;
-using Yadex.Retirement.Models;
 
-namespace Yadex.Retirement.Services
+namespace Yadex.Retirement.Models
 {
     public class AssetAudit
     {

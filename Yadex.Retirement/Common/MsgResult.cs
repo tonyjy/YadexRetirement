@@ -1,4 +1,4 @@
-﻿namespace Yadex.Retirement.Services
+﻿namespace Yadex.Retirement.Common
 {
     /// <summary>
     /// Class like couple for operation result and message.

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Prism.Mvvm;
+using Yadex.Retirement.Common;
 using Yadex.Retirement.Models;
 
 namespace Yadex.Retirement.Views

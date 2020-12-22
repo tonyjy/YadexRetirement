@@ -51,9 +51,18 @@
                 SelectedItem="{Binding AssetSelected}"
                 SelectionMode="Single">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Binding="{Binding AssetDate}" Header="Asset Date" />
-                    <DataGridTextColumn Binding="{Binding AssetName}" Header="Asset Name" />
-                    <DataGridTextColumn Binding="{Binding AssetAmount}" Header="Asset Value" />
+                    <DataGridTextColumn
+                        Width="150"
+                        Binding="{Binding AssetDate}"
+                        Header="Asset Date" />
+                    <DataGridTextColumn
+                        Width="*"
+                        Binding="{Binding AssetName}"
+                        Header="Asset Name" />
+                    <DataGridTextColumn
+                        Width="100"
+                        Binding="{Binding AssetAmount}"
+                        Header="Asset Value" />
                 </DataGrid.Columns>
             </DataGrid>
 

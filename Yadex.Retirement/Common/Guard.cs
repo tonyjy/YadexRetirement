@@ -1,6 +1,6 @@
 using System;
 
-namespace Yadex.Retirement.Views
+namespace Yadex.Retirement.Common
 {
     public class Guard
     {

@@ -1,4 +1,5 @@
 ﻿using System;
+using Yadex.Retirement.Common;
 using Yadex.Retirement.Models;
 
 namespace Yadex.Retirement.Services
