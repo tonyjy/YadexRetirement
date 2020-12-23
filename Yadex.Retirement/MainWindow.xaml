@@ -28,29 +28,52 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="20" />
                 <ColumnDefinition Width="100" />
+                <ColumnDefinition Width="100" />
+                <ColumnDefinition Width="200" />
+                <ColumnDefinition Width="100" />
+                <ColumnDefinition Width="300" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <Button Grid.Column="1" Click="AddAssetButton_Click">_Add Asset</Button>
+            <Button
+                Grid.Column="1"
+                Click="AddAssetButton_Click"
+                ToolTip="Add an asset record, such as 401K, RRSP etc">
+                _Add Asset
+            </Button>
+
+            <!--            <CheckBox Grid.Column="3" IsChecked="{Binding ShowAllChecked}">Show All Years</CheckBox>            -->
+            <ComboBox
+                Grid.Column="3"
+                ItemsSource="{Binding FilterYearList}"
+                SelectedItem="{Binding YearSelected}" />
+
+
+            <StackPanel Grid.Column="5" Orientation="Horizontal">
+                <Label>Asset Total:</Label>
+                <Label Content="{Binding LatestAssetTotal}" />
+            </StackPanel>
         </Grid>
 
         <!--  Row Grid  -->
         <Grid Grid.Row="3">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="20" />
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="17*" />
+                <ColumnDefinition Width="223*" />
                 <ColumnDefinition Width="20" />
             </Grid.ColumnDefinitions>
 
             <DataGrid
                 Name="AssetDataGrid"
                 Grid.Column="1"
+                Grid.ColumnSpan="2"
                 AutoGenerateColumns="False"
-                ItemsSource="{Binding AllAssets}"
+                IsReadOnly="True"
+                ItemsSource="{Binding VisibleAssets}"
                 MouseDoubleClick="OnMouseDoubleClick"
                 SelectedItem="{Binding AssetSelected}"
-                SelectionMode="Single"
-                IsReadOnly="True">
+                SelectionMode="Single">
                 <DataGrid.Columns>
                     <DataGridTextColumn
                         Width="80"
