@@ -105,7 +105,7 @@ namespace Yadex.Retirement.Services
                 // validate 
                 var oldAsset = oldAssets.SingleOrDefault(x => x.AssetId == updatedAsset.AssetId);
                 if (oldAsset == null)
-                    throw new Exception($"Record cannot be found for {updatedAsset.AssetId.ToString()}");
+                    throw new Exception($"Record cannot be found for {updatedAsset.AssetId}");
 
                 // act
                 SaveAssets(oldAssets, oldAsset, updatedAsset, UpdateAssetAction);
@@ -166,10 +166,15 @@ namespace Yadex.Retirement.Services
             switch (actionName)
             {
                 case AddAssetAction:
+                    // set timestamp
+                    newAsset.LastUpdatedTime = DateTime.Now;
                     allAssets.Add(newAsset);
                     break;
                 case UpdateAssetAction:
                     allAssets.Remove(oldAsset);
+                    
+                    // set timestamp
+                    newAsset.LastUpdatedTime = DateTime.Now;
                     allAssets.Add(newAsset);
                     break;
                 case DeleteAssetAction:

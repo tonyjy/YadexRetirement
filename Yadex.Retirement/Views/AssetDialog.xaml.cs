@@ -1,3 +1,4 @@
+using System;
 using System.Windows;
 
 namespace Yadex.Retirement.Views
@@ -30,6 +31,12 @@ namespace Yadex.Retirement.Views
         private void OnCancelClick(object sender, RoutedEventArgs e)
         {
             Close();
+        }
+
+        private void OnDuplicateClick(object sender, RoutedEventArgs e)
+        {
+            ViewModel.IsNew = true;
+            ViewModel.AssetId = Guid.NewGuid();
         }
     }
 }

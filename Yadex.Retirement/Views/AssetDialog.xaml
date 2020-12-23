@@ -108,7 +108,8 @@
         <!--  Buttons  -->
         <Grid Grid.Row="3">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="260" />
+                <ColumnDefinition Width="185" />
+                <ColumnDefinition Width="75" />
                 <ColumnDefinition Width="75" />
                 <ColumnDefinition Width="75" />
                 <ColumnDefinition Width="*" />
@@ -125,6 +126,13 @@
                 Click="OnCancelClick">
                 Cancel
             </Button>
+
+            <Button
+                Grid.Column="3"
+                Margin="10,1"
+                Click="OnDuplicateClick"
+                Content="Duplicate" />
+
         </Grid>
     </Grid>
 </Window>

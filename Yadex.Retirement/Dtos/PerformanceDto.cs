@@ -96,7 +96,7 @@ namespace Yadex.Retirement.Dtos
             set
             {
                 _percentValue = value;
-                PercentString = $"{value * 100:P2}";
+                PercentString = $"{value:P2}";
             }
         }
 

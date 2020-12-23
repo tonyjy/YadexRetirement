@@ -13,29 +13,30 @@ namespace Yadex.Retirement.Views
         public AssetDialogViewModel(MainWindowViewModel parent, Asset asset = null)
         {
             Parent = Guard.NotNull(nameof(parent), parent);
-            OldAsset = asset;
+            GetAssetNameList();
+            GetAssetTypeList();
 
-            ResetViewModel();
+            InitValues(asset);
         }
 
         public MainWindowViewModel Parent { get; }
-        public Asset OldAsset { get; }
 
-        private bool IsNew => OldAsset == null;
-
-        public void ResetViewModel()
+        public bool IsNew
+        
         {
-            GetAssetNameList();
-
-            GetAssetTypeList();
-
-            GetDefaultValues();
+            get => _isNew;
+            set
+            {
+                _isNew = value;
+                ActionButtonContent = IsNew ? "Create" : "Update";
+            }
         }
 
-        private void GetDefaultValues()
+        private void InitValues(Asset asset)
         {
-            if (IsNew)
+            if (asset == null)
             {
+                IsNew = true;
                 AssetId = Guid.NewGuid();
                 AssetName = string.Empty;
                 AssetDate = DateTime.Today;
@@ -44,11 +45,12 @@ namespace Yadex.Retirement.Views
                 return;
             }
 
-            AssetId = OldAsset.AssetId;
-            AssetName = OldAsset.AssetName;
-            AssetDate = OldAsset.AssetDate;
-            AssetAmount = OldAsset.AssetAmount;
-            AssetType = OldAsset.AssetType;
+            IsNew = false;
+            AssetId = asset.AssetId;
+            AssetName = asset.AssetName;
+            AssetDate = asset.AssetDate;
+            AssetAmount = asset.AssetAmount;
+            AssetType = asset.AssetType;
         }
 
         private void GetAssetNameList()
@@ -75,8 +77,18 @@ namespace Yadex.Retirement.Views
 
         #region Bindings
 
-        public string ActionButtonContent => IsNew ? "Create" : "Update";
+        public string ActionButtonContent
+        {
+            get => _actionButtonContent;
+            set
+            {
+                _actionButtonContent = value;
+                RaisePropertyChanged();
+            }
+        }
 
+        private string _actionButtonContent;
+        
         public Guid AssetId
         {
             get => _assetId;
@@ -159,7 +171,8 @@ namespace Yadex.Retirement.Views
         }
 
         private string _assetType;
-        
+        private bool _isNew;
+
         #endregion
 
         #region Actions
