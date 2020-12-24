@@ -68,25 +68,28 @@ namespace Yadex.Retirement.Services
         /// </summary>
         /// <param name="asset"></param>
         /// <returns></returns>
-        public MsgResult AddAsset(Asset asset)
+        public MsgResult<string> AddAsset(Asset asset)
         {
             try
             {
-                var oldAssets = GetAllAssets().ToList();
+                var (succeeded, errorMessage, oldAssets) = GetAllAssets();
+                if (!succeeded)
+                    throw new Exception($"Get all assets failed. {errorMessage}");
+
 
                 // validate 
-                var oldAsset = oldAssets.SingleOrDefault(x => x.AssetId == asset.AssetId);
-                if (oldAsset != null)
+                var existing = oldAssets.SingleOrDefault(x => x.AssetId == asset.AssetId);
+                if (existing != null)
                     throw new Exception($"Record has been found for {asset.AssetId.ToString()}");
 
                 // act
-                SaveAssets(oldAssets, null, asset, AddAssetAction);
+                SaveAssets(oldAssets.ToList(), null, asset, AddAssetAction);
 
-                return new MsgResult();
+                return new MsgResult<string>();
             }
             catch (Exception e)
             {
-                return new MsgResult($"Error happened while add asset. \n{e.Message}\n{e.StackTrace}");
+                return new MsgResult<string>($"Error happened while add asset. \n{e.Message}\n{e.StackTrace}");
             }
         }
 
@@ -96,25 +99,27 @@ namespace Yadex.Retirement.Services
         /// </summary>
         /// <param name="updatedAsset"></param>
         /// <returns></returns>
-        public MsgResult UpdateAsset(Asset updatedAsset)
+        public MsgResult<string> UpdateAsset(Asset updatedAsset)
         {
             try
             {
-                var oldAssets = GetAllAssets().ToList();
+                var (succeeded, errorMessage, oldAssets) = GetAllAssets();
+                if (!succeeded)
+                    throw new Exception($"Get all assets failed. {errorMessage}");
 
                 // validate 
-                var oldAsset = oldAssets.SingleOrDefault(x => x.AssetId == updatedAsset.AssetId);
-                if (oldAsset == null)
+                var asset = oldAssets.SingleOrDefault(x => x.AssetId == updatedAsset.AssetId);
+                if (asset == null)
                     throw new Exception($"Record cannot be found for {updatedAsset.AssetId}");
 
                 // act
-                SaveAssets(oldAssets, oldAsset, updatedAsset, UpdateAssetAction);
+                SaveAssets(oldAssets.ToList(), asset, updatedAsset, UpdateAssetAction);
 
-                return new MsgResult();
+                return new MsgResult<string>();
             }
             catch (Exception e)
             {
-                return new MsgResult($"Error happened to update asset. \n{e.Message}\n{e.StackTrace}");
+                return new MsgResult<string>($"Error happened to update asset. \n{e.Message}\n{e.StackTrace}");
             }
         }
 
@@ -123,25 +128,27 @@ namespace Yadex.Retirement.Services
         /// </summary>
         /// <param name="assetId"></param>
         /// <returns></returns>
-        public MsgResult DeleteAsset(Guid assetId)
+        public MsgResult<string> DeleteAsset(Guid assetId)
         {
             try
             {
-                var oldAssets = GetAllAssets().ToList();
+                var (succeeded, errorMessage, oldAssets) = GetAllAssets();
+                if (!succeeded)
+                    throw new Exception($"Get all assets failed. {errorMessage}");
 
                 // validate 
-                var oldAsset = oldAssets.SingleOrDefault(x => x.AssetId == assetId);
-                if (oldAsset == null)
+                var asset = oldAssets.SingleOrDefault(x => x.AssetId == assetId);
+                if (asset == null)
                     throw new Exception($"Record cannot be found for {assetId.ToString()}");
 
                 // act
-                SaveAssets(oldAssets, oldAsset, null, DeleteAssetAction);
+                SaveAssets(oldAssets.ToList(), asset, null, DeleteAssetAction);
 
-                return new MsgResult();
+                return new MsgResult<string>();
             }
             catch (Exception e)
             {
-                return new MsgResult($"Error happened to delete. \n{e.Message}\n{e.StackTrace}");
+                return new MsgResult<string>($"Error happened to delete. \n{e.Message}\n{e.StackTrace}");
             }
         }
 
@@ -149,14 +156,24 @@ namespace Yadex.Retirement.Services
         ///     Get all assets from Json file.
         /// </summary>
         /// <returns></returns>
-        public Asset[] GetAllAssets()
+        public MsgResult<Asset[]> GetAllAssets()
         {
-            return JsonSerializer.Deserialize<Asset[]>(File.ReadAllText(CurrentFilePath)) ?
-                .OrderBy(x => x.AssetType)
-                .ThenBy(x => x.AssetName)
-                .ThenByDescending(x => x.AssetDate)
-                .ThenByDescending(x => x.LastUpdatedTime)
-                .ToArray();
+            try
+            {
+                var assets = JsonSerializer.Deserialize<Asset[]>(File.ReadAllText(CurrentFilePath))?
+                    .OrderBy(x => x.AssetType)
+                    .ThenBy(x => x.AssetName)
+                    .ThenByDescending(x => x.AssetDate)
+                    .ThenByDescending(x => x.LastUpdatedTime)
+                    .ToArray();
+
+                return new (true, "", assets);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
         }
 
         private void SaveAssets(List<Asset> allAssets, Asset oldAsset, Asset newAsset, string actionName)

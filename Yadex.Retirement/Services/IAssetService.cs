@@ -6,12 +6,12 @@ namespace Yadex.Retirement.Services
 {
     public interface IAssetService
     {
-        MsgResult AddAsset(Asset asset);
+        MsgResult<string> AddAsset(Asset asset);
         
-        MsgResult UpdateAsset(Asset updatedAsset);
+        MsgResult<string> UpdateAsset(Asset updatedAsset);
         
-        MsgResult DeleteAsset(Guid assetId);
+        MsgResult<string> DeleteAsset(Guid assetId);
 
-        Asset[] GetAllAssets();
+        MsgResult<Asset[]> GetAllAssets();
     }
 }

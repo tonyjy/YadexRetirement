@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
+using System.Windows;
 using Prism.Mvvm;
 using Yadex.Retirement.Dtos;
 using Yadex.Retirement.Services;
@@ -14,13 +16,14 @@ namespace Yadex.Retirement
 
         public MainWindowViewModel()
         {
-            AssetService = new JsonFileAssetService(@"C:\Users\tony_\OneDrive\My Family\My Assets\JwFamily Assets\");
-
+            SettingsService = new YadexRetirementSettingsService();
+            
             ResetViewModel();
             RefreshViewModel();
         }
 
-        public IAssetService AssetService { get; }
+        public IAssetService AssetService { get; set; }
+        public IYadexRetirementSettingsService SettingsService { get; }
 
         private void ResetViewModel()
         {
@@ -35,8 +38,24 @@ namespace Yadex.Retirement
 
         public void RefreshViewModel()
         {
-            var allAssets = AssetService.GetAllAssets();
+            // get settings
+            var (succeededSettings, errorSettings, settings) = SettingsService.GetYadexRetirementSettings();
+            if (!succeededSettings)
+            {
+                MessageBox.Show($"Get all setting failed. {errorSettings}", "ERROR");
+                return;
+            }
 
+            // get assets
+            AssetService = new JsonFileAssetService(settings.AssetRootFolder);
+            var (succeeded, errorMessage, allAssets) = AssetService.GetAllAssets();
+            if (!succeeded)
+            {
+                MessageBox.Show($"Get all assets failed. {errorMessage}", "ERROR");
+                return;
+            }
+            
+            // bind to grid
             var dtoList = new List<PerformanceDto>();
             for (var i = 0; i < allAssets.Length; i++)
             {

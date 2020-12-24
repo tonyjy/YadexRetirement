@@ -4,6 +4,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net5.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
+	<UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>icon.ico</ApplicationIcon>
     <AssemblyName>Yadex.Retirement</AssemblyName>
     <RootNamespace>Yadex.Retirement</RootNamespace>
@@ -25,18 +26,12 @@
     <Compile Update="MainWindow.xaml.cs">
       <DependentUpon>MainWindowViewModel.cs</DependentUpon>
     </Compile>
-    <Compile Update="UserSettings.Designer.cs">
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>UserSettings.settings</DependentUpon>
-    </Compile>
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="UserSettings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>UserSettings.Designer.cs</LastGenOutput>
-    </None>
+    <Page Update="Views\SettingsDialog.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+    </Page>
   </ItemGroup>
 
 </Project>

@@ -22,7 +22,7 @@ namespace Yadex.Retirement.Views
         public MainWindowViewModel Parent { get; }
 
         public bool IsNew
-        
+
         {
             get => _isNew;
             set
@@ -65,7 +65,7 @@ namespace Yadex.Retirement.Views
 
         private void GetAssetTypeList()
         {
-            AssetTypeList = new ObservableCollection<string>(new []
+            AssetTypeList = new ObservableCollection<string>(new[]
             {
                 AssetTypes.Cash,
                 AssetTypes.Fixed,
@@ -88,7 +88,7 @@ namespace Yadex.Retirement.Views
         }
 
         private string _actionButtonContent;
-        
+
         public Guid AssetId
         {
             get => _assetId;
@@ -148,6 +148,7 @@ namespace Yadex.Retirement.Views
         }
 
         private ObservableCollection<string> _assetNameList;
+
         public ObservableCollection<string> AssetTypeList
         {
             get => _assetTypeList;
@@ -201,7 +202,7 @@ namespace Yadex.Retirement.Views
 
             var newAsset = new Asset(AssetId, AssetName, AssetAmount, AssetType, AssetDate);
 
-            var (succeeded, errorMessage) = IsNew
+            var (succeeded, errorMessage, result) = IsNew
                 ? Parent.AssetService.AddAsset(newAsset)
                 : Parent.AssetService.UpdateAsset(newAsset);
 

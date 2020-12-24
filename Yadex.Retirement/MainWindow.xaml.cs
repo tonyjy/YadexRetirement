@@ -27,5 +27,14 @@ namespace Yadex.Retirement
                 {Owner = this, DataContext = new AssetDialogViewModel(ViewModel, ViewModel.AssetSelected.Asset)};
             assetDialog.ShowDialog();
         }
+
+        private void SettingsButton_Click(object sender, RoutedEventArgs e)
+        {
+            var settingsDialog = new SettingsDialog
+                { Owner = this, DataContext = new SettingsDialogViewModel(ViewModel) };
+            settingsDialog.ShowDialog();
+            
+            ViewModel.RefreshViewModel();
+        }
     }
 }
