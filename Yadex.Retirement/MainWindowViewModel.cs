@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
 using System.Windows;
 using Prism.Mvvm;
@@ -34,6 +33,7 @@ namespace Yadex.Retirement
             list.AddRange(Enumerable.Range(thisYear, 20)
                 .Select(x => (2*thisYear - x).ToString()));
             FilterYearList = new ObservableCollection<string>(list);
+            YearSelected = DateTime.Now.Year.ToString();
         }
 
         public void RefreshViewModel()
@@ -70,7 +70,6 @@ namespace Yadex.Retirement
             }
 
             AllAssets = new ObservableCollection<PerformanceDto>(dtoList);
-            YearSelected = DateTime.Now.Year.ToString();
         }
 
 
@@ -98,6 +97,8 @@ namespace Yadex.Retirement
             {
                 _allAssets = value;
                 RaisePropertyChanged();
+
+                FilterAssetsByYear(_yearSelected);
             }
         }
 
@@ -144,12 +145,20 @@ namespace Yadex.Retirement
             {
                 _latestAssetTotalValue = value;
                 RaisePropertyChanged();
-                LatestAssetTotal = $"{_latestAssetTotalValue:C2}";
+
+                var changeYtd = _yearBeforeAssetTotalValue == 0 ? 0 : _latestAssetTotalValue - _yearBeforeAssetTotalValue;
+                var percentYtd = _yearBeforeAssetTotalValue == 0 ? 0 : changeYtd / _yearBeforeAssetTotalValue;
+                var sign = changeYtd > 0 ? "+" : "";
+                
+                var ytd = _yearBeforeAssetTotalValue == 0 ? "-" : $"({sign}{changeYtd/1000:N0}k {percentYtd:P1})";
+                LatestAssetTotal = $"{_latestAssetTotalValue/1000000:N3}m {ytd}";
             }
         }
 
         private decimal _latestAssetTotalValue;
+        private decimal _yearBeforeAssetTotalValue;
 
+        
         public ObservableCollection<string> FilterYearList
         {
             get => _filterYearList;
@@ -179,7 +188,7 @@ namespace Yadex.Retirement
 
         private void FilterAssetsByYear(string yearSelected)
         {
-            if (yearSelected == AllYears)
+            if (yearSelected == AllYears || yearSelected == null)
             {
                 VisibleAssets = AllAssets;
                 LatestAssetTotal = "";
@@ -187,13 +196,23 @@ namespace Yadex.Retirement
             }
 
             var targetYear = int.Parse(yearSelected);
+            YearBefore = targetYear - 1;
+            
+            // The year before
+            var yearBeforeList = AllAssets.Where(x => x.Asset.AssetDate.Year <= YearBefore);
+            var yearBeforeAssets = yearBeforeList.GroupBy(x => x.AssetName).Select(grouping => grouping.First());
+            _yearBeforeAssetTotalValue = yearBeforeAssets.Sum(x => x.Asset.AssetAmount);
+
+            // target year
             var filteredList = AllAssets.Where(x => x.Asset.AssetDate.Year <= targetYear);
 
             VisibleAssets = LatestAssets = new ObservableCollection<PerformanceDto>(
                 filteredList.GroupBy(x => x.AssetName).Select(grouping => grouping.First()));
 
             LatestAssetTotalValue = LatestAssets.Sum(x => x.Asset.AssetAmount);
+            
         }
 
+        public int YearBefore { get; set; }
     }
 }

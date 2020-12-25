@@ -89,6 +89,18 @@ namespace Yadex.Retirement.Views
 
         private string _actionButtonContent;
 
+        public string AssetIdText
+        {
+            get => _assetIdText;
+            set
+            {
+                _assetIdText = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private string _assetIdText;
+
         public Guid AssetId
         {
             get => _assetId;
@@ -96,6 +108,8 @@ namespace Yadex.Retirement.Views
             {
                 _assetId = value;
                 RaisePropertyChanged();
+
+                AssetIdText = IsNew ? "NEW" : AssetId.ToString();
             }
         }
 
@@ -185,8 +199,8 @@ namespace Yadex.Retirement.Views
             if (string.IsNullOrWhiteSpace(AssetName))
                 errors.Add("Asset name is empty. Please provide asset name.");
 
-            if (AssetAmount <= 0m)
-                errors.Add("Asset amount is zero or negative. Please enter positive number");
+            if (AssetAmount < 0m)
+                errors.Add("Asset amount is negative. Please enter zero or positive number");
 
             if (AssetDate > DateTime.Today)
                 errors.Add("Asset date is in the future. Please enter the date to be today or earlier");

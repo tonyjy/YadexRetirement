@@ -53,7 +53,7 @@
                 Grid.Column="2"
                 Margin="3"
                 IsReadOnly="True"
-                Text="{Binding AssetId}" />
+                Text="{Binding AssetIdText}" />
 
             <Label
                 Grid.Row="1"
