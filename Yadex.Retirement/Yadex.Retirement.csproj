@@ -1,13 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net5.0-windows</TargetFramework>
-    <UseWPF>true</UseWPF>
-	<UseWindowsForms>true</UseWindowsForms>
-    <ApplicationIcon>icon.ico</ApplicationIcon>
-    <AssemblyName>Yadex.Retirement</AssemblyName>
-    <RootNamespace>Yadex.Retirement</RootNamespace>
+      <OutputType>WinExe</OutputType>
+      <TargetFramework>net5.0-windows</TargetFramework>
+      <UseWPF>true</UseWPF>
+	  <UseWindowsForms>true</UseWindowsForms>
+      <ApplicationIcon>icon.ico</ApplicationIcon>
+      <AssemblyName>Yadex.Retirement</AssemblyName>
+      <RootNamespace>Yadex.Retirement</RootNamespace>
+	  <PackageId>YadexRetirement</PackageId>
+	  <Version>1.1.0</Version>
+	  <Authors>tonyjy</Authors>
+	  <Company>Yadex</Company>
+	  <PackageDescription>Yadex Retirement v1.1 is an asset management application for F.I.R.(E.) — Financial Independence, Retire (Early.)</PackageDescription>
+	  <RepositoryUrl>https://github.com/tonyjy/YadexRetirement</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
