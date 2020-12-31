@@ -180,19 +180,38 @@ namespace Yadex.Retirement.Services
         {
             var oldAssets = allAssets.ToArray();
 
+            var lastUpdatedTime = DateTime.Now;
             switch (actionName)
             {
                 case AddAssetAction:
                     // set timestamp
-                    newAsset.LastUpdatedTime = DateTime.Now;
+                    newAsset.LastUpdatedTime = lastUpdatedTime;
                     allAssets.Add(newAsset);
                     break;
                 case UpdateAssetAction:
                     allAssets.Remove(oldAsset);
                     
                     // set timestamp
-                    newAsset.LastUpdatedTime = DateTime.Now;
+                    newAsset.LastUpdatedTime = lastUpdatedTime;
                     allAssets.Add(newAsset);
+                    
+                    // check if AssetName has been changed
+                    if (oldAsset.AssetName != newAsset.AssetName)
+                    {
+                        allAssets
+                            .Where(x => x.AssetName == oldAsset.AssetName)
+                            .ToList()
+                            .ForEach(asset =>
+                            {
+                                var updatedAsset = asset with {
+                                    AssetName = newAsset.AssetName,
+                                    LastUpdatedTime = lastUpdatedTime
+                                };
+                                allAssets.Remove(asset);
+                                allAssets.Add(updatedAsset);
+                            });
+                    }
+
                     break;
                 case DeleteAssetAction:
                     allAssets.Remove(oldAsset);
