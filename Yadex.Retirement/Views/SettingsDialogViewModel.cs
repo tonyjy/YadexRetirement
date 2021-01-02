@@ -1,5 +1,9 @@
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using Prism.Mvvm;
 using Yadex.Retirement.Common;
@@ -15,7 +19,12 @@ namespace Yadex.Retirement.Views
             Parent = Guard.NotNull(nameof(parent), parent);
             YadexRetirementSettingsService = new YadexRetirementSettingsService();
 
-            // get settings
+            ResetViewModel(parent);
+        }
+
+        private void ResetViewModel(MainWindowViewModel parent)
+        {
+            // get settings from settings service
             var (succeededSettings, errorSettings, settings) = parent.SettingsService.GetYadexRetirementSettings();
             if (!succeededSettings)
             {
@@ -23,7 +32,17 @@ namespace Yadex.Retirement.Views
                 return;
             }
 
+            // init BirthYearList
+            var thisYear = DateTime.Now.Year;
+            BirthYearList = new ObservableCollection<int>(Enumerable
+                .Range(thisYear - 18, 120)
+                .Select(x => (2 * thisYear - x)));
+            
+            // set bindings
             AssetRootFolder = settings.AssetRootFolder;
+            BirthYearSelected = settings.BirthYear;
+            PensionIncomeText = settings.PensionIncome.ToString(CultureInfo.InvariantCulture);
+            SocialSecurityIncomeText = settings.SocialSecurityIncome.ToString(CultureInfo.InvariantCulture);
         }
 
         public MainWindowViewModel Parent { get; }
@@ -44,6 +63,84 @@ namespace Yadex.Retirement.Views
 
         private string _rootFolder;
 
+        public ObservableCollection<int> BirthYearList
+        {
+            get => _birthYearList;
+            set
+            {
+                _birthYearList = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private ObservableCollection<int> _birthYearList;
+
+        public int BirthYearSelected
+        {
+            get => _birthYearSelected;
+            set
+            {
+                _birthYearSelected = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private int _birthYearSelected;
+
+        public decimal SocialSecurityIncome
+        {
+            get => _socialSecurityIncome;
+            set
+            {
+                _socialSecurityIncome = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private decimal _socialSecurityIncome;
+
+        public string SocialSecurityIncomeText
+        {
+            get => _socialSecurityIncomeText;
+            set
+            {
+                if (decimal.TryParse(value, out var decimalValue))
+                    SocialSecurityIncome = decimal.Round(decimalValue, 2);
+
+                _socialSecurityIncomeText = $"{SocialSecurityIncome:N2}";
+                RaisePropertyChanged();
+            }
+        }
+
+        private string _socialSecurityIncomeText;
+
+        public decimal PensionIncome
+        {
+            get => _pensionIncome;
+            set
+            {
+                _pensionIncome = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private decimal _pensionIncome;
+
+        public string PensionIncomeText
+        {
+            get => _pensionIncomeText;
+            set
+            {
+                if (decimal.TryParse(value, out var decimalValue))
+                    PensionIncome = decimal.Round(decimalValue, 2);
+
+                _pensionIncomeText = $"{PensionIncome:N2}";
+                RaisePropertyChanged();
+            }
+        }
+
+        private string _pensionIncomeText;
+
         #endregion
 
         #region Actions
@@ -53,10 +150,19 @@ namespace Yadex.Retirement.Views
             var errors = new List<string>();
 
             if (string.IsNullOrWhiteSpace(AssetRootFolder))
-                errors.Add("AssetRootFolder is empty. ");
+                errors.Add("Data directory is invalid. It is empty. ");
 
             if (!Directory.Exists(AssetRootFolder))
-                errors.Add("AssetRootFolder is not a folder.");
+                errors.Add($"Data directory is not existing - {AssetRootFolder}.");
+
+            if (BirthYearSelected < 0)
+                errors.Add($"Birth Year is invalid. The value is negative - {BirthYearSelected}.");
+
+            if (SocialSecurityIncome < 0)
+                errors.Add($"Social Security is invalid. The value is negative - {SocialSecurityIncome}.");
+
+            if (PensionIncome < 0)
+                errors.Add($"Pension is invalid. The value is negative - {BirthYearSelected}.");
 
             return errors;
         }
@@ -67,7 +173,12 @@ namespace Yadex.Retirement.Views
             if (errors.Count > 0)
                 return errors;
 
-            var settings = new YadexRetirementSettings(AssetRootFolder);
+            var settings = new YadexRetirementSettings(AssetRootFolder)
+            {
+                BirthYear = BirthYearSelected,
+                SocialSecurityIncome = SocialSecurityIncome,
+                PensionIncome = PensionIncome
+            };
 
             var (succeeded, errorMessage, _) = YadexRetirementSettingsService.UpdateYadexRetirementSettings(settings);
 

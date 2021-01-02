@@ -6,8 +6,8 @@
     xmlns:local="clr-namespace:Yadex.Retirement.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="Yadex Settings Dialog"
-    Width="840"
-    Height="140"
+    Width="540"
+    Height="230"
     d:DataContext="{d:DesignInstance Type=local:SettingsDialogViewModel}"
     WindowStartupLocation="CenterOwner"
     mc:Ignorable="d">
@@ -15,46 +15,88 @@
     <Grid>
 
         <Grid.RowDefinitions>
-            <RowDefinition Height="20" />
-            <RowDefinition Height="40" />
+            <RowDefinition Height="10" />
+            <RowDefinition Height="10" />
             <!--  Inputs  -->
-            <RowDefinition Height="20" />
+            <RowDefinition Height="0" />
+            <RowDefinition Height="*" />
             <RowDefinition Height="25" />
             <!--  Row Buttons  -->
             <RowDefinition Height="20" />
         </Grid.RowDefinitions>
 
+        <!--  User Inputs  -->
+        <Grid Grid.Row="3" Margin="10,0,-10,0">
 
-        <!--  Asset Inputs  -->
-        <Grid Grid.Row="1" Margin="10,0,-10,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="20" />
+                <ColumnDefinition Width="130" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="40" />
+            </Grid.ColumnDefinitions>
+
             <Grid.RowDefinitions>
+                <RowDefinition Height="30" />
+                <RowDefinition Height="30" />
+                <RowDefinition Height="30" />
+                <RowDefinition Height="30" />
                 <RowDefinition Height="30" />
                 <RowDefinition Height="30" />
             </Grid.RowDefinitions>
 
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="20" />
-                <ColumnDefinition Width="100" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="20" />
-            </Grid.ColumnDefinitions>
-
-            <!--<Label
+            <!--  Year of Birth  -->
+            <Label
                 Grid.Row="0"
                 Grid.Column="1"
-                Content="Asset Path:"
-                FontWeight="SemiBold"
-                ToolTip="Folder path to store Asset.json" />-->
+                Margin="17,3"
+                Content="Year of Birth: " />
 
-            <Button
+            <ComboBox
+                Grid.Row="0"
+                Grid.Column="2"
+                Margin="3"
+                ItemsSource="{Binding BirthYearList}"
+                SelectedItem="{Binding BirthYearSelected}" />
+
+            <!--  Social Securities  -->
+            <Label
+                Grid.Row="1"
                 Grid.Column="1"
-                Margin="10,3"
-                Click="OnChangePathClick"
-                ToolTip="Folder path to store Asset.json" 
-                Content="Folder ..." />
+                Margin="17,3"
+                Content="Social Security: "
+                ToolTip="This is the estimated social security premium at the age of 65." />
 
             <TextBox
-                Grid.Row="0"
+                Grid.Row="1"
+                Grid.Column="2"
+                Margin="3"
+                Text="{Binding SocialSecurityIncomeText}" />
+
+            <!--  Pension Estimate  -->
+            <Label
+                Grid.Row="2"
+                Grid.Column="1"
+                Margin="17,3"
+                Content="Pension: "
+                ToolTip="This is the estimated pension premium at the age of 65." />
+
+            <TextBox
+                Grid.Row="2"
+                Grid.Column="2"
+                Margin="3"
+                Text="{Binding PensionIncomeText}" />
+
+            <!--  Data Directory  -->
+            <Button
+                Grid.Row="3"
+                Grid.Column="1"
+                Margin="5,3"
+                Click="OnChangePathClick"
+                Content="Data Directory ..."
+                ToolTip="Folder path to store data. Recommend a folder being backed up." />
+
+            <TextBox
+                Grid.Row="3"
                 Grid.Column="2"
                 Margin="3"
                 IsReadOnly="True"
@@ -63,14 +105,14 @@
 
         </Grid>
 
-        <!--  Buttons  -->
-        <Grid Grid.Row="3">
+        <!--  Action Buttons  -->
+        <Grid Grid.Row="4">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="185" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="75" />
                 <ColumnDefinition Width="75" />
-                <ColumnDefinition Width="20" />
+                <ColumnDefinition Width="30" />
             </Grid.ColumnDefinitions>
 
             <Button

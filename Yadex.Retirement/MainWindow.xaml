@@ -44,12 +44,10 @@
                 _Add Asset
             </Button>
 
-            <!--            <CheckBox Grid.Column="3" IsChecked="{Binding ShowAllChecked}">Show All Years</CheckBox>            -->
             <ComboBox
                 Grid.Column="3"
                 ItemsSource="{Binding FilterYearList}"
                 SelectedItem="{Binding YearSelected}" />
-
 
             <StackPanel Grid.Column="5" Orientation="Horizontal">
                 <Label>Asset Total:</Label>
