@@ -5,6 +5,10 @@ namespace Yadex.Retirement.Models
     public record YadexRetirementSettings (string AssetRootFolder)
     {
         public int BirthYear { get; set; } = DateTime.Now.Year - 45;
+        
+        public int RetirementAge { get; set; } = 55;
+
+        public decimal AppreciationRate { get; set; } = .05m;
 
         public decimal SocialSecurityIncome { get; set; }
         
