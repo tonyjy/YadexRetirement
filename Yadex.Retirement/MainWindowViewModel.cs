@@ -16,12 +16,13 @@ namespace Yadex.Retirement
         public MainWindowViewModel()
         {
             SettingsService = new YadexRetirementSettingsService();
-
+            AllocationService = new SimpleAllocationService();
             ResetViewModel();
             RefreshViewModel();
         }
 
         public IAssetService AssetService { get; set; }
+        public IAllocationService AllocationService { get; set; }
         public IYadexRetirementSettingsService SettingsService { get; }
 
         private YadexRetirementSettings _settings;
@@ -89,6 +90,22 @@ namespace Yadex.Retirement
             FetchAllAssetsFromService();
 
             CalculateAssertsPerformance();
+            
+            CalculateAllocations();
+        }
+
+        private void CalculateAllocations()
+        {
+            var result = AllocationService.GetAllAllocations(_settings, _allAssetsFromService);
+
+            AllAllocations = new ObservableCollection<AllocationDto>();
+            if (!result.Succeeded)
+            {
+                MessageBox.Show(result.ErrorMessage, "Error in Calculate Allocation");
+                return;
+            }
+
+            AllAllocations = new ObservableCollection<AllocationDto>(result.Result);
         }
 
         /// <summary>
@@ -283,6 +300,18 @@ namespace Yadex.Retirement
         private RetirementAge _retirementAgeSelected;
         private Asset[] _allAssetsFromService;
 
+        public ObservableCollection<AllocationDto> AllAllocations
+        {
+            get => _allAllocations;
+            set
+            {
+                _allAllocations = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private ObservableCollection<AllocationDto> _allAllocations;
+        
         #endregion
 
         private void FilterAssetsByYear(string yearSelected)

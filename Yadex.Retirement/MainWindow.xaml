@@ -139,8 +139,10 @@
 
             <Label
                 Grid.Column="1"
+                Margin="0"
                 Content="Retirement Age:"
-                ToolTip="Planned retirement age" />
+                ToolTip="Planned retirement age" 
+                Height="27"/>
 
             <ComboBox
                 Grid.Column="2"
@@ -164,39 +166,46 @@
                 Grid.ColumnSpan="2"
                 AutoGenerateColumns="False"
                 IsReadOnly="True"
-                ItemsSource="{Binding VisibleAssets}"
-                MouseDoubleClick="OnMouseDoubleClick"
-                SelectedItem="{Binding AssetSelected}"
+                ItemsSource="{Binding AllAllocations}"
                 SelectionMode="Single">
                 <DataGrid.Columns>
                     <DataGridTextColumn
-                        Width="140"
-                        Binding="{Binding AssetDate}"
+                        Width="*"
+                        Binding="{Binding AllocationYear}"
                         Header="Year" />
                     <DataGridTextColumn
-                        Width="120"
-                        Binding="{Binding AssetType}"
+                        Width="*"
+                        Binding="{Binding AllocationCash}"
                         Header="Cash Withdrawal" />
                     <DataGridTextColumn
-                        Width="120"
-                        Binding="{Binding PercentString}"
+                        Width="*"
+                        Binding="{Binding Allocation401K}"
                         Header="401K Withdrawal" />
                     <DataGridTextColumn
-                        Width="120"
-                        Binding="{Binding AssetAmount}"
+                        Width="*"
+                        Binding="{Binding SocialSecurityAmount}"
                         Header="Social Security" />
                     <DataGridTextColumn
-                        Width="120"
-                        Binding="{Binding LastUpdatedTime}"
+                        Width="*"
+                        Binding="{Binding PensionAmount}"
                         Header="Pension" />
                     <DataGridTextColumn
-                        Width="140"
-                        Binding="{Binding LastUpdatedTime}"
+                        Width="*"
+                        Binding="{Binding TotalAllocation}"
                         Header="Total Income" />
                     <DataGridTextColumn
                         Width="*"
-                        Binding="{Binding LastUpdatedTime}"
+                        Binding="{Binding AssetRemaining}"
                         Header="Asset Remaining" />
+                    <DataGridTextColumn
+                        Width="*"
+                        Binding="{Binding AssetDifference}"
+                        Header="Asset Difference" />
+                    <DataGridTextColumn
+                        Width="*"
+                        Binding="{Binding Status}"
+                        Header="Status" />
+
                 </DataGrid.Columns>
             </DataGrid>
 
