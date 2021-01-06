@@ -139,10 +139,10 @@
 
             <Label
                 Grid.Column="1"
+                Height="27"
                 Margin="0"
                 Content="Retirement Age:"
-                ToolTip="Planned retirement age" 
-                Height="27"/>
+                ToolTip="Planned retirement age" />
 
             <ComboBox
                 Grid.Column="2"
@@ -171,40 +171,40 @@
                 <DataGrid.Columns>
                     <DataGridTextColumn
                         Width="*"
-                        Binding="{Binding AllocationYear}"
+                        Binding="{Binding AgeYear}"
                         Header="Year" />
-                    <DataGridTextColumn
-                        Width="*"
-                        Binding="{Binding AllocationCash}"
-                        Header="Cash Withdrawal" />
-                    <DataGridTextColumn
-                        Width="*"
-                        Binding="{Binding Allocation401K}"
-                        Header="401K Withdrawal" />
-                    <DataGridTextColumn
-                        Width="*"
-                        Binding="{Binding SocialSecurityAmount}"
-                        Header="Social Security" />
-                    <DataGridTextColumn
-                        Width="*"
-                        Binding="{Binding PensionAmount}"
-                        Header="Pension" />
-                    <DataGridTextColumn
-                        Width="*"
-                        Binding="{Binding TotalAllocation}"
-                        Header="Total Income" />
-                    <DataGridTextColumn
-                        Width="*"
-                        Binding="{Binding AssetRemaining}"
-                        Header="Asset Remaining" />
-                    <DataGridTextColumn
-                        Width="*"
-                        Binding="{Binding AssetDifference}"
-                        Header="Asset Difference" />
                     <DataGridTextColumn
                         Width="*"
                         Binding="{Binding Status}"
                         Header="Status" />
+                    <DataGridTextColumn
+                        Width="*"
+                        Binding="{Binding CashAmountText}"
+                        Header="Cash Withdrawal" />
+                    <DataGridTextColumn
+                        Width="*"
+                        Binding="{Binding R401KAmountText}"
+                        Header="401K Withdrawal" />
+                    <DataGridTextColumn
+                        Width="*"
+                        Binding="{Binding SocialSecurityAmountText}"
+                        Header="SS Withdrawal" />
+                    <DataGridTextColumn
+                        Width="*"
+                        Binding="{Binding PensionAmountText}"
+                        Header="Pension Withdrawal" />
+                    <DataGridTextColumn
+                        Width="*"
+                        Binding="{Binding FixedAmountText}"
+                        Header="Fixed Asset Withdrawal" />
+                    <DataGridTextColumn
+                        Width="*"
+                        Binding="{Binding TotalWithdrawalText}"
+                        Header="Retirement Income" />
+                    <DataGridTextColumn
+                        Width="*"
+                        Binding="{Binding AssetTotalChanged}"
+                        Header="Asset Total" />
 
                 </DataGrid.Columns>
             </DataGrid>

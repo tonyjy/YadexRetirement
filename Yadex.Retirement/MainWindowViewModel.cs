@@ -16,13 +16,12 @@ namespace Yadex.Retirement
         public MainWindowViewModel()
         {
             SettingsService = new YadexRetirementSettingsService();
-            AllocationService = new SimpleAllocationService();
             ResetViewModel();
             RefreshViewModel();
         }
 
         public IAssetService AssetService { get; set; }
-        public IAllocationService AllocationService { get; set; }
+        public IAllocationService AllocationService => new SimpleAllocationService(_settings);
         public IYadexRetirementSettingsService SettingsService { get; }
 
         private YadexRetirementSettings _settings;
@@ -96,7 +95,7 @@ namespace Yadex.Retirement
 
         private void CalculateAllocations()
         {
-            var result = AllocationService.GetAllAllocations(_settings, _allAssetsFromService);
+            var result = AllocationService.GetAllAllocations(_allAssetsFromService);
 
             AllAllocations = new ObservableCollection<AllocationDto>();
             if (!result.Succeeded)
@@ -236,12 +235,8 @@ namespace Yadex.Retirement
                 _latestAssetTotalValue = value;
                 RaisePropertyChanged();
 
-                var changeYtd = _yearBeforeAssetTotalValue == 0 ? 0 : _latestAssetTotalValue - _yearBeforeAssetTotalValue;
-                var percentYtd = _yearBeforeAssetTotalValue == 0 ? 0 : changeYtd / _yearBeforeAssetTotalValue;
-                var sign = changeYtd > 0 ? "+" : "";
-
-                var ytd = _yearBeforeAssetTotalValue == 0 ? "-" : $"({sign}{changeYtd / 1000:N0}k {percentYtd:P1})";
-                LatestAssetTotal = $"{_latestAssetTotalValue / 1000000:N3}m {ytd}";
+                LatestAssetTotal = AssetsHelper.GetTotalWithChange(
+                    _latestAssetTotalValue, _yearBeforeAssetTotalValue);
             }
         }
 

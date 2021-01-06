@@ -1,21 +1,17 @@
-﻿using System.Windows.Media.Animation;
-using Accessibility;
-using Prism.Mvvm;
+﻿using Prism.Mvvm;
 
 namespace Yadex.Retirement.Dtos
 {
     public class AllocationDto : BindableBase
     {
-        public AllocationDto(int birthYear, int allocationYear, 
-            decimal cash, 
-            decimal r401, 
-            decimal socialSecurity,
-            decimal pension,
-            string status,
-            AllocationDto lastYearAllocation)
+        public AllocationDto(int year, string status)
         {
-            
+            Year = year;
+            Status = status;
         }
+
+        public int Year { get; }
+        public string Status { get; }
 
         private static string FormalizeNumber(decimal value)
         {
@@ -23,121 +19,135 @@ namespace Yadex.Retirement.Dtos
             var sign = decimalNumber switch
             {
                 0 => "",
-                >0 => "+",
+                > 0 => "+",
                 _ => "-"
             };
-            
+
             return $"{sign}{decimalNumber:C2}";
         }
-        
-        public string AllocationYear
+
+        #region Bindings
+
+        /// <summary>
+        ///     This property will contains the age and the year
+        /// </summary>
+        public string AgeYear
         {
-            get => _year;
+            get => _ageYear;
             set
             {
-                _year = value;
+                _ageYear = value;
                 RaisePropertyChanged();
             }
         }
 
-        private string _year;
+        private string _ageYear;
 
-        public string AllocationCash
+        public decimal CashAmount
         {
-            get => _allocationCash;
+            get => _cashAmount;
             set
             {
-                _allocationCash = value;
+                _cashAmount = value;
+                RaisePropertyChanged();
+                RaisePropertyChanged(nameof(CashAmountText));
+            }
+        }
+        private decimal _cashAmount;
+
+        public string CashAmountText => FormalizeNumber(_cashAmount);
+
+        public decimal R401KAmount
+        {
+            get => _r401KAmount;
+            set
+            {
+                _r401KAmount = value;
+                RaisePropertyChanged();
+                RaisePropertyChanged(nameof(R401KAmountText));
+            }
+        }
+        private decimal _r401KAmount;
+
+        public string R401KAmountText => FormalizeNumber(_r401KAmount);
+
+        public decimal AssetTotal
+        {
+            get => _assetTotal;
+            set
+            {
+                _assetTotal = value;
+                RaisePropertyChanged();
+                RaisePropertyChanged(nameof(AssetTotalText));
+            }
+        }
+
+        private decimal _assetTotal;
+        public string AssetTotalText => FormalizeNumber(_assetTotal);
+
+        public string AssetTotalChanged
+        {
+            get => _assetTotalChanged;
+            set
+            {
+                _assetTotalChanged = value;
                 RaisePropertyChanged();
             }
         }
 
-        private string _allocationCash;
+        private string _assetTotalChanged;
 
-        public string Allocation401K
-        {
-            get => _allocation401K;
-            set
-            {
-                _allocation401K = value;
-                RaisePropertyChanged();
-            }
-        }
-
-        private string _allocation401K;
-
-        public string SocialSecurityAmount
+        public decimal SocialSecurityAmount
         {
             get => _socialSecurityAmount;
             set
             {
                 _socialSecurityAmount = value;
                 RaisePropertyChanged();
+                RaisePropertyChanged(nameof(SocialSecurityAmountText));
             }
         }
 
-        private string _socialSecurityAmount;
+        private decimal _socialSecurityAmount;
+        public string SocialSecurityAmountText => FormalizeNumber(SocialSecurityAmount);
 
-        public string PensionAmount
+        public decimal PensionAmount
         {
             get => _pensionAmount;
             set
             {
                 _pensionAmount = value;
                 RaisePropertyChanged();
+                RaisePropertyChanged(nameof(PensionAmountText));
             }
         }
 
-        private string _pensionAmount;
+        private decimal _pensionAmount;
+        public string PensionAmountText => FormalizeNumber(_pensionAmount);
 
-        public string AssetRemaining
+        public decimal FixedAmount
         {
-            get => _assetRemaining;
+            get => _fixedAmount;
             set
             {
-                _assetRemaining = value;
+                _fixedAmount = value;
                 RaisePropertyChanged();
+                RaisePropertyChanged(nameof(FixedAmountText));
             }
         }
 
-        private string _assetRemaining;
+        private decimal _fixedAmount;
+        public string FixedAmountText => FormalizeNumber(_fixedAmount);
 
-        public string AssetDifference
-        {
-            get => _assetDifference;
-            set
-            {
-                _assetDifference = value;
-                RaisePropertyChanged();
-            }
-        }
+        public decimal TotalWithdrawal =>
+            _fixedAmount + 
+            _pensionAmount + 
+            _socialSecurityAmount + 
+            _r401KAmount + 
+            _cashAmount;
 
-        private string _assetDifference = "-";
+        public string TotalWithdrawalText => FormalizeNumber(TotalWithdrawal);
 
-        public string Status
-
-        {
-            get => _status;
-            set
-            {
-                _status = value;
-                RaisePropertyChanged();
-            }
-        }
-
-        private string _status = AllocationStatusTypes.Actual;
-
-        public string TotalAllocation
-        {
-            get => _totalAllocation;
-            set
-            {
-                _totalAllocation = value;
-                RaisePropertyChanged();
-            }
-        }
-
-        private string _totalAllocation;
+        #endregion
     }
-
 }
