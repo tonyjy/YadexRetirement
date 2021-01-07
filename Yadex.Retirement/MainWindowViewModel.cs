@@ -29,7 +29,6 @@ namespace Yadex.Retirement
         // Const variables
         private const string AllYears = "All Years";
         private const int MinRetirementYear = 25;
-        private const int TargetRetirementYear = 55;
         private const int MaxRetirementYear = 75;
 
         private void ResetViewModel()
@@ -41,6 +40,8 @@ namespace Yadex.Retirement
             InitAssetYears();
 
             InitRetirementAge();
+
+            RetirementIncomeText = $"{_settings.RetirementIncome:N0}";
         }
 
         private bool InitSettings()
@@ -76,7 +77,7 @@ namespace Yadex.Retirement
                 var age = MinRetirementYear + i;
                 var year = birthYear + age;
                 list[i] = new RetirementAge(age, year);
-                if (age == TargetRetirementYear)
+                if (age == _settings.RetirementAge)
                     _retirementAgeSelected = list[i];
             }
 
@@ -289,6 +290,14 @@ namespace Yadex.Retirement
             {
                 _retirementAgeSelected = value;
                 RaisePropertyChanged();
+
+                // check if different with settings
+                if (_settings.RetirementAge == _retirementAgeSelected.Age) 
+                    return;
+                
+                _settings.RetirementAge = _retirementAgeSelected.Age;
+                SaveSettings();
+                CalculateAllocations();
             }
         }
 
@@ -306,7 +315,50 @@ namespace Yadex.Retirement
         }
 
         private ObservableCollection<AllocationDto> _allAllocations;
-        
+
+        public decimal RetirementIncome
+        {
+            get => _retirementIncome;
+            set
+            {
+                _retirementIncome = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private decimal _retirementIncome;
+
+        public string RetirementIncomeText
+        {
+            get => _retirementIncomeText;
+            set
+            {
+                if (decimal.TryParse(value, out var decimalValue))
+                    RetirementIncome = decimal.Round(decimalValue, 2);
+
+                _retirementIncomeText = $"{RetirementIncome:N0}";
+                RaisePropertyChanged();
+
+                // check if different with settings
+                if (_settings.RetirementIncome == RetirementIncome)
+                    return;
+
+                _settings.RetirementIncome = RetirementIncome;
+                SaveSettings();
+                CalculateAllocations();
+            }
+        }
+
+        private void SaveSettings()
+        {
+            var result = SettingsService.UpdateYadexRetirementSettings(_settings);
+            if (!result.Succeeded)
+                MessageBox.Show($"Couldn't save to settings {result.ErrorMessage}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+
+        private string _retirementIncomeText;
+
+
         #endregion
 
         private void FilterAssetsByYear(string yearSelected)

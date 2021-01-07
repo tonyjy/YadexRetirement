@@ -1,4 +1,6 @@
-﻿using Prism.Mvvm;
+﻿using System.Linq;
+using Prism.Mvvm;
+using Yadex.Retirement.Models;
 
 namespace Yadex.Retirement.Dtos
 {
@@ -12,6 +14,16 @@ namespace Yadex.Retirement.Dtos
 
         public int Year { get; }
         public string Status { get; }
+
+        public Asset[] Assets
+        {
+            get => _assets;
+            set
+            {
+                _assets = value;
+                AssetTotal = _assets.Sum(x => x.AssetAmount);
+            }
+        }
 
         private static string FormalizeNumber(decimal value)
         {
@@ -137,6 +149,7 @@ namespace Yadex.Retirement.Dtos
         }
 
         private decimal _fixedAmount;
+        private Asset[] _assets;
         public string FixedAmountText => FormalizeNumber(_fixedAmount);
 
         public decimal TotalWithdrawal =>

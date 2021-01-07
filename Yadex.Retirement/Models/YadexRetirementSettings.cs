@@ -8,7 +8,9 @@ namespace Yadex.Retirement.Models
         
         public int RetirementAge { get; set; } = 55;
 
-        public decimal AppreciationRate { get; set; } = .05m;
+        public decimal RetirementIncome { get; set; } = 75000m;
+
+        public decimal AppreciationRate { get; set; } = .04m;
 
         public decimal SocialSecurityIncome { get; set; }
         

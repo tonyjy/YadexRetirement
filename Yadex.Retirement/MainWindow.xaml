@@ -129,9 +129,9 @@
                 <ColumnDefinition Width="20" />
                 <ColumnDefinition Width="100" />
                 <ColumnDefinition Width="200" />
-                <ColumnDefinition Width="100" />
-                <ColumnDefinition Width="100" />
-                <ColumnDefinition Width="300" />
+                <ColumnDefinition Width="50" />
+                <ColumnDefinition Width="120" />
+                <ColumnDefinition Width="200" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="70" />
                 <ColumnDefinition Width="20" />
@@ -148,6 +148,15 @@
                 Grid.Column="2"
                 ItemsSource="{Binding RetirementAges}"
                 SelectedItem="{Binding RetirementAgeSelected}" />
+
+            <Label
+                Grid.Column="4"
+                Height="27"
+                Margin="0"
+                Content="Retirement Income:"
+                ToolTip="Annual Retirement Income" />
+
+            <TextBox Grid.Column="5" Text="{Binding RetirementIncomeText}" />
 
         </Grid>
 
