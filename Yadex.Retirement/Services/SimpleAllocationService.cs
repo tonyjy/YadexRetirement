@@ -23,8 +23,6 @@ namespace Yadex.Retirement.Services
         private decimal PensionIncome => _settings.PensionIncome;
         private decimal SocialSecurityIncome => _settings.SocialSecurityIncome;
 
-        // Range 0 - 100, set to 5.0 percent as default
-        private decimal IncreasePercent = 4.0m;
         /// <summary>
         /// This is the main entry point for calculate the allocations
         /// </summary>
