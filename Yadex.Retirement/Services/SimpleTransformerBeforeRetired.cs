@@ -16,13 +16,18 @@ namespace Yadex.Retirement.Services
                         x with 
                             {
                             AssetDate = assetDate,
-                            AssetAmount = x.AssetAmount * 1.02m
                             },
                     { AssetType: AssetTypes.RetirementPension } =>
                         x with
                             {
                             AssetDate = assetDate,
                             AssetAmount = x.AssetAmount + 10000
+                            },
+                    { AssetType: AssetTypes.Retirement401K } =>
+                        x with
+                            {
+                            AssetDate = assetDate,
+                            AssetAmount = x.AssetAmount + (19500 * 1.07m)
                             },
                     _ =>
                         x with

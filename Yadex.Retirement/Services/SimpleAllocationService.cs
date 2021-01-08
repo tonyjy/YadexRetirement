@@ -144,7 +144,8 @@ namespace Yadex.Retirement.Services
                 var r401Amount = SimpleR401KAllocator.Allocate(assets, maxAge, year);
 
                 // Cash
-                var cashPortion = (_settings.RetirementIncome - r401Amount - PensionIncome - SocialSecurityIncome) ;
+                var totalWithdrawal = GetTotalWithdrawal(preDto);
+                var cashPortion = (totalWithdrawal - r401Amount - PensionIncome - SocialSecurityIncome) ;
                 var cashAmount = cashPortion >= 0 ? cashPortion : 0m;
                 SimpleCashAllocator.Allocate(assets, cashAmount);
 
@@ -179,8 +180,8 @@ namespace Yadex.Retirement.Services
                 var r401Amount = SimpleR401KAllocator.Allocate(assets, maxAge, year);
 
                 // Cash
-                var income = _settings.RetirementIncome;
-                var cashAmount = r401Amount >= income ? 0m : income - r401Amount;
+                var totalWithdrawal = GetTotalWithdrawal(preDto);
+                var cashAmount = r401Amount >= totalWithdrawal ? 0m : totalWithdrawal - r401Amount;
                 SimpleCashAllocator.Allocate(assets, cashAmount);
 
                 var preTotal = preDto.AssetTotal;
@@ -214,15 +215,23 @@ namespace Yadex.Retirement.Services
                 var preTotal = preDto.AssetTotal;
                 var curTotal = assets.Sum(x => x.AssetAmount);
 
+                var totalWithdrawal = GetTotalWithdrawal(preDto);
                 var dto = new AllocationDto(year, AllocationStatusTypes.RetiredEstimated)
                 {
                     AgeYear = new RetirementAge(year - BirthYear, year).ToString(),
-                    CashAmount = _settings.RetirementIncome,
+                    CashAmount = totalWithdrawal,
                     Assets = assets.ToArray(),
                     AssetTotalChanged = AssetsHelper.GetTotalWithChange(curTotal, preTotal)
                 };
                 AllocationDict.Add(year, dto);
             }
+        }
+
+        private decimal GetTotalWithdrawal(AllocationDto preDto)
+        {
+            return preDto.TotalWithdrawal == 0
+                ? _settings.RetirementIncome
+                : preDto.TotalWithdrawal * 1.01m;
         }
     }
 }
