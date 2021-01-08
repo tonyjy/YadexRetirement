@@ -22,7 +22,7 @@
             <RowDefinition Height="20" />
 
             <!--  1st Grid  -->
-            <RowDefinition Height="*" />
+            <RowDefinition Height="200" />
 
             <!--  2nd Buttons  -->
             <RowDefinition Height="20" />

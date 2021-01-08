@@ -147,7 +147,7 @@ namespace Yadex.Retirement.Services
             var pensionAge = BirthYear + 65;
             var maxAge = BirthYear + 95;
 
-            // cash is allowed
+            // cash is allowed before 60
             for (var year = minYr; year < r401kAge; year++)
             {
                 var preDto = AllocationDict[year - 1];
@@ -214,21 +214,95 @@ namespace Yadex.Retirement.Services
                 AllocationDict.Add(year, dto);
             }
 
-            // cash, 401K, and RRSP are allowed
+            // cash, 401K, and RRSP are allowed after 60 - 95
             for (var year = r401kAge; year < pensionAge; year++)
             {
+                var preDto = AllocationDict[year - 1];
+                var preAssets = preDto.Assets;
+
+                var assetDate = new DateTime(year, 12, 31);
+                var assets = preAssets.Select(x =>
+                {
+                    var asset = x switch
+                    {
+                        { AssetType: AssetTypes.Fixed } a =>
+                            x with
+                            {
+                                AssetDate = assetDate,
+                                AssetAmount = x.AssetAmount * 1.02m
+                            },
+                        { AssetType: AssetTypes.RetirementPension } a =>
+                            x with
+                            {
+                                AssetDate = assetDate,
+                                AssetAmount = x.AssetAmount * 1.04m
+                            },
+                        _ =>
+                            x with
+                            {
+                                AssetDate = assetDate,
+                                AssetAmount = x.AssetAmount * 1.04m
+                            },
+                    };
+
+                    return asset;
+                }).ToList();
+
+
+                var cashAssets = assets.Where(x => x.AssetType == AssetTypes.Cash).ToList();
+
+                var r401Assets = assets.Where(x => 
+                    x.AssetType == AssetTypes.Retirement401K || 
+                    x.AssetType == AssetTypes.Retirement401K).ToList(); ;
+
+                var r401Amount = r401Assets.Sum(x => x.AssetAmount) / (maxAge - year);
+                foreach (var asset in r401Assets)
+                {
+                    var assetModified = asset with {
+                        AssetAmount = (maxAge > year) 
+                            ? asset.AssetAmount - asset.AssetAmount/ (maxAge - year) 
+                            : 0
+                    };
+                    assets.Remove(asset);
+                    assets.Add(assetModified);
+                }
+
+                var cashAmount = r401Amount >= _settings.RetirementIncome ? 0m : _settings.RetirementIncome - r401Amount;
+                foreach (var asset in cashAssets)
+                {
+                    if (asset.AssetAmount >= cashAmount)
+                    {
+                        var assetModified = asset with { AssetAmount = asset.AssetAmount - cashAmount };
+                        assets.Remove(asset);
+                        assets.Add(assetModified);
+                        break;
+                    }
+
+                    var assetZero = asset with { AssetAmount = 0 };
+                    cashAmount -= asset.AssetAmount;
+                    assets.Remove(asset);
+                    assets.Add(assetZero);
+                }
+
+                var preTotal = preDto.AssetTotal;
+                var curTotal = assets.Sum(x => x.AssetAmount);
+
+                var dto = new AllocationDto(year, AllocationStatusTypes.RetiredEstimated)
+                {
+                    AgeYear = new RetirementAge(year - BirthYear, year).ToString(),
+                    CashAmount = cashAmount,
+                    R401KAmount = r401Amount,
+                    Assets = assets.ToArray(),
+                    AssetTotalChanged = AssetsHelper.GetTotalWithChange(curTotal, preTotal)
+                };
+                AllocationDict.Add(year, dto);
             }
-            
+
             // Add social security and pension 
             for (var year = pensionAge; year < maxAge; year++)
             {
             }
 
-            //    .Sum(x => x.AssetAmount);
-
-            //var r401 = assetsActual
-            //    .Where(x => x.AssetType == AssetTypes.Retirement401K || x.AssetType == AssetTypes.Retirement401K)
-            //    .Sum(x => x.AssetAmount); ;
 
             //var fixedAsset = assetsActual
             //    .Where(x => x.AssetType == AssetTypes.Fixed)
