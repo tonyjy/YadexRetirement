@@ -91,32 +91,7 @@ namespace Yadex.Retirement.Services
                 var preAssets = preDto.Assets;
 
                 var assetDate = new DateTime(year, 12, 31);
-                var assets = preAssets.Select(x =>
-                {
-                    var asset = x switch
-                    {
-                       { AssetType: AssetTypes.Fixed } a => 
-                           x with 
-                               {
-                                    AssetDate = assetDate,
-                                    AssetAmount = x.AssetAmount * 1.02m
-                               },
-                       { AssetType: AssetTypes.RetirementPension } a =>
-                           x with
-                               {
-                                    AssetDate = assetDate,
-                                    AssetAmount = x.AssetAmount + 10000
-                               },
-                       _ =>
-                           x with
-                               {
-                                    AssetDate = assetDate,
-                                    AssetAmount = x.AssetAmount * 1.04m
-                               },
-                    };
-                    
-                    return asset;
-                }).ToArray();
+                var assets = SimpleTransformerBeforeRetired.Transform(assetDate, preAssets);
                 
                 var preTotal = preDto.AssetTotal;
                 var curTotal = assets.Sum(x => x.AssetAmount);
@@ -143,63 +118,37 @@ namespace Yadex.Retirement.Services
 
             var minYr = preYear + 1;
 
-            var r401kAge = BirthYear + 60;
+            var r401KAge = BirthYear + 60;
             var pensionAge = BirthYear + 65;
             var maxAge = BirthYear + 95;
 
-            // cash is allowed before 60
-            for (var year = minYr; year < r401kAge; year++)
+            // Retired Before 401K (age 60)
+            AllocateBefore401K(minYr, r401KAge);
+
+            // Retired Before Pension (age 65)
+            AllocateBeforePension(r401KAge, pensionAge, maxAge);
+
+            // Add social security and pension (age > 65)
+            AllocateAfterPension(pensionAge, maxAge);
+        }
+
+        private void AllocateAfterPension(int pensionAge, int maxAge)
+        {
+            for (var year = pensionAge; year < maxAge; year++)
             {
                 var preDto = AllocationDict[year - 1];
                 var preAssets = preDto.Assets;
-                
+
                 var assetDate = new DateTime(year, 12, 31);
-                var assets = preAssets.Select(x =>
-                {
-                    var asset = x switch
-                    {
-                        { AssetType: AssetTypes.Fixed } a =>
-                            x with
-                                {
-                                AssetDate = assetDate,
-                                AssetAmount = x.AssetAmount * 1.02m
-                                },
-                        { AssetType: AssetTypes.RetirementPension } a =>
-                            x with
-                                {
-                                AssetDate = assetDate,
-                                AssetAmount = x.AssetAmount * 1.04m
-                            },
-                        _ =>
-                            x with
-                                {
-                                AssetDate = assetDate,
-                                AssetAmount = x.AssetAmount * 1.04m
-                                },
-                    };
+                var assets = SimpleTransformerBeforePension.Transform(assetDate, preAssets);
 
-                    return asset;
-                }).ToList();
+                // 401K
+                var r401Amount = SimpleR401KAllocator.Allocate(assets, maxAge, year);
 
-
-                var cashAssets = assets.Where(x => x.AssetType == AssetTypes.Cash).ToList();
-
-                var amount = _settings.RetirementIncome;
-                foreach (var asset in cashAssets)
-                {
-                    if (asset.AssetAmount >= amount)
-                    {
-                        var assetModified = asset with { AssetAmount = asset.AssetAmount - amount };
-                        assets.Remove(asset);
-                        assets.Add(assetModified);
-                        break;
-                    }
-
-                    var assetZero = asset with { AssetAmount = 0 };
-                    amount -= asset.AssetAmount;
-                    assets.Remove(asset);
-                    assets.Add(assetZero);
-                }
+                // Cash
+                var cashPortion = (_settings.RetirementIncome - r401Amount - PensionIncome - SocialSecurityIncome) ;
+                var cashAmount = cashPortion >= 0 ? cashPortion : 0m;
+                SimpleCashAllocator.Allocate(assets, cashAmount);
 
                 var preTotal = preDto.AssetTotal;
                 var curTotal = assets.Sum(x => x.AssetAmount);
@@ -207,82 +156,34 @@ namespace Yadex.Retirement.Services
                 var dto = new AllocationDto(year, AllocationStatusTypes.RetiredEstimated)
                 {
                     AgeYear = new RetirementAge(year - BirthYear, year).ToString(),
-                    CashAmount = _settings.RetirementIncome,
+                    CashAmount = cashAmount,
+                    R401KAmount = r401Amount,
+                    SocialSecurityAmount = SocialSecurityIncome,
+                    PensionAmount = PensionIncome,
                     Assets = assets.ToArray(),
                     AssetTotalChanged = AssetsHelper.GetTotalWithChange(curTotal, preTotal)
                 };
                 AllocationDict.Add(year, dto);
             }
+        }
 
-            // cash, 401K, and RRSP are allowed after 60 - 95
-            for (var year = r401kAge; year < pensionAge; year++)
+        private void AllocateBeforePension(int r401KAge, int pensionAge, int maxAge)
+        {
+            for (var year = r401KAge; year < pensionAge; year++)
             {
                 var preDto = AllocationDict[year - 1];
                 var preAssets = preDto.Assets;
 
                 var assetDate = new DateTime(year, 12, 31);
-                var assets = preAssets.Select(x =>
-                {
-                    var asset = x switch
-                    {
-                        { AssetType: AssetTypes.Fixed } a =>
-                            x with
-                            {
-                                AssetDate = assetDate,
-                                AssetAmount = x.AssetAmount * 1.02m
-                            },
-                        { AssetType: AssetTypes.RetirementPension } a =>
-                            x with
-                            {
-                                AssetDate = assetDate,
-                                AssetAmount = x.AssetAmount * 1.04m
-                            },
-                        _ =>
-                            x with
-                            {
-                                AssetDate = assetDate,
-                                AssetAmount = x.AssetAmount * 1.04m
-                            },
-                    };
+                var assets = SimpleTransformerBeforePension.Transform(assetDate, preAssets);
 
-                    return asset;
-                }).ToList();
+                // 401K
+                var r401Amount = SimpleR401KAllocator.Allocate(assets, maxAge, year);
 
-
-                var cashAssets = assets.Where(x => x.AssetType == AssetTypes.Cash).ToList();
-
-                var r401Assets = assets.Where(x => 
-                    x.AssetType == AssetTypes.Retirement401K || 
-                    x.AssetType == AssetTypes.Retirement401K).ToList(); ;
-
-                var r401Amount = r401Assets.Sum(x => x.AssetAmount) / (maxAge - year);
-                foreach (var asset in r401Assets)
-                {
-                    var assetModified = asset with {
-                        AssetAmount = (maxAge > year) 
-                            ? asset.AssetAmount - asset.AssetAmount/ (maxAge - year) 
-                            : 0
-                    };
-                    assets.Remove(asset);
-                    assets.Add(assetModified);
-                }
-
-                var cashAmount = r401Amount >= _settings.RetirementIncome ? 0m : _settings.RetirementIncome - r401Amount;
-                foreach (var asset in cashAssets)
-                {
-                    if (asset.AssetAmount >= cashAmount)
-                    {
-                        var assetModified = asset with { AssetAmount = asset.AssetAmount - cashAmount };
-                        assets.Remove(asset);
-                        assets.Add(assetModified);
-                        break;
-                    }
-
-                    var assetZero = asset with { AssetAmount = 0 };
-                    cashAmount -= asset.AssetAmount;
-                    assets.Remove(asset);
-                    assets.Add(assetZero);
-                }
+                // Cash
+                var income = _settings.RetirementIncome;
+                var cashAmount = r401Amount >= income ? 0m : income - r401Amount;
+                SimpleCashAllocator.Allocate(assets, cashAmount);
 
                 var preTotal = preDto.AssetTotal;
                 var curTotal = assets.Sum(x => x.AssetAmount);
@@ -297,32 +198,33 @@ namespace Yadex.Retirement.Services
                 };
                 AllocationDict.Add(year, dto);
             }
-
-            // Add social security and pension 
-            for (var year = pensionAge; year < maxAge; year++)
-            {
-            }
-
-
-            //var fixedAsset = assetsActual
-            //    .Where(x => x.AssetType == AssetTypes.Fixed)
-            //    .Sum(x => x.AssetAmount); ;
-
-            //_cashAmount = cash;
-            //_r401Amount = r401;
-            //_fixedAsset = fixedAsset;
-            //_socialSecurity = socialSecurity;
-            //_pension = pension;
-            //_totalAllocationAmount = _cashAmount + _r401Amount + _fixedAsset + _socialSecurity + _pension;
-
-            //// Update the 
-
-            //AllocationCash = FormalizeNumber(_cashAmount);
-            //Allocation401K = FormalizeNumber(_r401Amount);
-            //SocialSecurityAmount = FormalizeNumber(_socialSecurity);
-            //PensionAmount = FormalizeNumber(_pension);
-            //TotalAllocation = FormalizeNumber(_totalAllocationAmount);
         }
 
+        private void AllocateBefore401K(int minYr, int r401KAge)
+        {
+            for (var year = minYr; year < r401KAge; year++)
+            {
+                var preDto = AllocationDict[year - 1];
+                var preAssets = preDto.Assets;
+
+                var assetDate = new DateTime(year, 12, 31);
+                var assets = SimpleTransformerRetiredBefore401K.TransformAssets(assetDate, preAssets);
+
+                var amount = _settings.RetirementIncome;
+                SimpleCashAllocator.Allocate(assets, amount);
+
+                var preTotal = preDto.AssetTotal;
+                var curTotal = assets.Sum(x => x.AssetAmount);
+
+                var dto = new AllocationDto(year, AllocationStatusTypes.RetiredEstimated)
+                {
+                    AgeYear = new RetirementAge(year - BirthYear, year).ToString(),
+                    CashAmount = _settings.RetirementIncome,
+                    Assets = assets.ToArray(),
+                    AssetTotalChanged = AssetsHelper.GetTotalWithChange(curTotal, preTotal)
+                };
+                AllocationDict.Add(year, dto);
+            }
+        }
     }
 }
