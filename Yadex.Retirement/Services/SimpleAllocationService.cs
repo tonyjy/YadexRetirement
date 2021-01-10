@@ -37,11 +37,11 @@ namespace Yadex.Retirement.Services
             // calc the actual assets, 
             GetActualYears(assets);
 
-            // estimate until retirement year inclusively, e.g. 55 
-            GetTransitionYears();
-
             // Apply Risk Factor
             ApplyRiskFactor();
+
+            // estimate until retirement year inclusively, e.g. 55 
+            GetTransitionYears();
             
             // estimate after retirement year, e.g. starting 56 to 95
             GetRetirementYears();
@@ -54,7 +54,7 @@ namespace Yadex.Retirement.Services
             var dto = AllocationDict[AllocationDict.Keys.Max()];
 
             var assets = dto.Assets.ToList();
-            SimpleCashAllocator.Allocate(assets, _settings.RiskFactor);
+            SimpleAllocator.Allocate(assets, assets.ForCash(), _settings.RiskFactor);
             
             dto.Assets = assets.ToArray();
         }
@@ -129,21 +129,21 @@ namespace Yadex.Retirement.Services
         /// </summary>
         private void GetRetirementYears()
         {
-            var preYear = AllocationDict.Keys.Max();
-            var minYr = preYear + 1;
-
             var r401KAge = BirthYear + 60;
             var pensionAge = BirthYear + 65;
             var maxAge = BirthYear + 95;
 
             // Retired Before 401K (age 60)
+            var minYr = AllocationDict.Keys.Max() + 1;
             AllocateRetiredEarlyBefore401K(minYr, r401KAge);
 
             // Retired Before Pension (age 65)
-            AllocateRetiredEarlyBeforeSocialAndPension(r401KAge, pensionAge, maxAge);
+            minYr = AllocationDict.Keys.Max() + 1;
+            AllocateRetiredEarlyBeforeSocialAndPension(minYr, pensionAge, maxAge);
 
             // Add social security and pension (age > 65)
-            AllocateRetiredFully(pensionAge, maxAge);
+            minYr = AllocationDict.Keys.Max() + 1;
+            AllocateRetiredFully(minYr, maxAge);
         }
 
         #region Retired
@@ -166,7 +166,7 @@ namespace Yadex.Retirement.Services
                 var assets = transformer.Transform(assetDate, preAssets);
 
                 var target = GetTarget(preDto);
-                var cashWithdrawal = SimpleCashAllocator.Allocate(assets, target);
+                var cashWithdrawal = SimpleAllocator.Allocate(assets, assets.ForCash(), target);
 
                 var preTotal = preDto.AssetTotal;
                 var curTotal = assets.Sum(x => x.AssetAmount);
@@ -200,7 +200,7 @@ namespace Yadex.Retirement.Services
                 // Cash
                 var target = GetTarget(preDto);
                 var cashAmount = r401Amount >= target ? 0m : target - r401Amount;
-                var cashWithdrawal = SimpleCashAllocator.Allocate(assets, cashAmount);
+                var cashWithdrawal = SimpleAllocator.Allocate(assets, assets.ForCash(), cashAmount);
 
                 var preTotal = preDto.AssetTotal;
                 var curTotal = assets.Sum(x => x.AssetAmount);
@@ -236,8 +236,15 @@ namespace Yadex.Retirement.Services
                 var target = GetTarget(preDto);
                 var cashPortion = (target - r401Amount - PensionIncome - SocialSecurityIncome);
                 var cashAmount = cashPortion >= 0 ? cashPortion : 0m;
-                var cashWithdrawal = SimpleCashAllocator.Allocate(assets, cashAmount);
+                var cashWithdrawal = SimpleAllocator.Allocate(assets, assets.ForCash(), cashAmount);
 
+                // Still missing target 
+                var shortAmount = target - cashWithdrawal - r401Amount - SocialSecurityIncome - PensionIncome;
+                if (shortAmount > 0)
+                {
+                    r401Amount += SimpleAllocator.Allocate(assets, assets.For401K(), shortAmount);
+                }
+                
                 var preTotal = preDto.AssetTotal;
                 var curTotal = assets.Sum(x => x.AssetAmount);
 

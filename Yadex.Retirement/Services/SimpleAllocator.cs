@@ -4,7 +4,7 @@ using Yadex.Retirement.Models;
 
 namespace Yadex.Retirement.Services
 {
-    public class SimpleCashAllocator
+    public class SimpleAllocator
     {
         /// <summary>
         /// 
@@ -12,12 +12,10 @@ namespace Yadex.Retirement.Services
         /// <param name="assets"></param>
         /// <param name="amount">The amount required</param>
         /// <returns>Total withdrawal </returns>
-        public static decimal Allocate(List<Asset> assets, decimal amount)
+        public static decimal Allocate(List<Asset> assets, List<Asset> targetAssets, decimal amount)
         {
             var totalAllocated = 0m;
-            
-            var preCash = assets.Where(x => x.AssetType == AssetTypes.Cash).ToList();
-            foreach (var asset in preCash)
+            foreach (var asset in targetAssets)
             {
                 if (asset.AssetAmount >= amount)
                 {

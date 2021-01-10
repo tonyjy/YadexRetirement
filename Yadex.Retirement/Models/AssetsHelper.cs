@@ -35,6 +35,12 @@ namespace Yadex.Retirement.Models
         public static Asset[] For401K(this Asset[] assets)
             => assets.FilteredByType(AssetTypes.Retirement401K);
 
+        public static List<Asset> ForCash(this List<Asset> assets)
+            => assets.ToArray().FilteredByType(AssetTypes.Cash).ToList();
+
+        public static List<Asset> For401K(this List<Asset> assets)
+            => assets.ToArray().FilteredByType(AssetTypes.Retirement401K).ToList();
+
         public static Asset[] ForPension(this Asset[] assets)
             => assets.FilteredByType(AssetTypes.RetirementPension);
 
