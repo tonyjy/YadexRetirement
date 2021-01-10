@@ -27,6 +27,8 @@
             <!--  2nd Buttons  -->
             <RowDefinition Height="20" />
             <RowDefinition Height="25" />
+            <RowDefinition Height="5" />
+            <RowDefinition Height="25" />
             <RowDefinition Height="20" />
 
             <!--  2nd Grid  -->
@@ -128,13 +130,14 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="20" />
                 <ColumnDefinition Width="100" />
-                <ColumnDefinition Width="200" />
-                <ColumnDefinition Width="50" />
+                <ColumnDefinition Width="150" />
+                <ColumnDefinition Width="30" />
                 <ColumnDefinition Width="120" />
-                <ColumnDefinition Width="200" />
+                <ColumnDefinition Width="150" />
+                <ColumnDefinition Width="30" />
+                <ColumnDefinition Width="75" />
+                <ColumnDefinition Width="150" />
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="70" />
-                <ColumnDefinition Width="20" />
             </Grid.ColumnDefinitions>
 
             <Label
@@ -153,15 +156,71 @@
                 Grid.Column="4"
                 Height="27"
                 Margin="0"
-                Content="Retirement Income:"
-                ToolTip="Annual Retirement Income" />
+                Content="Retirement Target:"
+                ToolTip="Annual Retirement Income on 1st Retirement Year" />
 
             <TextBox Grid.Column="5" Text="{Binding RetirementIncomeText}" />
 
+            <Label
+                Grid.Column="7"
+                Height="27"
+                Margin="0"
+                Content="Risk Factor:"
+                ToolTip="Amount to reduce the cash holding for retirement model" />
+
+            <TextBox Grid.Column="8" Text="{Binding RiskFactorText}" />
+
         </Grid>
 
-        <!--  2nd Row Grid  -->
         <Grid Grid.Row="7">
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="20" />
+                <ColumnDefinition Width="100" />
+                <ColumnDefinition Width="150" />
+                <ColumnDefinition Width="30" />
+                <ColumnDefinition Width="34.9" />
+                <ColumnDefinition Width="85.1" />
+                <ColumnDefinition Width="150" />
+                <ColumnDefinition Width="30" />
+                <ColumnDefinition Width="63.7" />
+                <ColumnDefinition Width="11.3" />
+                <ColumnDefinition Width="150" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Label
+                Grid.Column="1"
+                Height="27"
+                Margin="0"
+                Content="Transition 401K:"
+                ToolTip="Amount to save to 401K in transition years" />
+
+            <TextBox Grid.Column="2" Text="{Binding TransitionYear401KSavingText}" />
+
+            <Label
+                Grid.Column="4"
+                Grid.ColumnSpan="2"
+                Height="27"
+                Margin="0,0,0,-2"
+                Content="Adjustment Rate:"
+                ToolTip="Retirement Income Adjustment Rate" />
+
+            <TextBox Grid.Column="6" Text="{Binding RetirementIncomeAdjustmentRate}" />
+
+            <Label
+                Grid.Column="8"
+                Grid.ColumnSpan="2"
+                Height="27"
+                Margin="0,0,0,-2"
+                Content="ROI Rate:"
+                ToolTip="Return rate of investment" />
+
+            <TextBox Grid.Column="10" Text="{Binding InvestmentReturnRate}" />
+
+        </Grid>
+        <!--  2nd Row Grid  -->
+        <Grid Grid.Row="9">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="20" />
                 <ColumnDefinition Width="17*" />

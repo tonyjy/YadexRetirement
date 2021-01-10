@@ -42,6 +42,14 @@ namespace Yadex.Retirement
             InitRetirementAge();
 
             RetirementIncomeText = $"{_settings.RetirementIncome:N0}";
+            
+            RiskFactorText = $"{_settings.RiskFactor:N0}";
+            
+            RetirementIncomeAdjustmentRate = _settings.RetirementIncomeAdjustmentRate;
+
+            InvestmentReturnRate = _settings.InvestmentReturnRate;
+
+            TransitionYear401KSavingText = $"{_settings.TransitionYear401KSaving:N0}";
         }
 
         private bool InitSettings()
@@ -177,7 +185,6 @@ namespace Yadex.Retirement
 
         private ObservableCollection<PerformanceDto> _visibleAssets;
 
-
         private ObservableCollection<PerformanceDto> _allAssets;
 
         public ObservableCollection<PerformanceDto> AllAssets
@@ -243,8 +250,7 @@ namespace Yadex.Retirement
 
         private decimal _latestAssetTotalValue;
         private decimal _yearBeforeAssetTotalValue;
-
-
+        
         public ObservableCollection<string> FilterYearList
         {
             get => _filterYearList;
@@ -302,6 +308,7 @@ namespace Yadex.Retirement
         }
 
         private RetirementAge _retirementAgeSelected;
+        
         private Asset[] _allAssetsFromService;
 
         public ObservableCollection<AllocationDto> AllAllocations
@@ -349,17 +356,126 @@ namespace Yadex.Retirement
             }
         }
 
+        private string _retirementIncomeText;
+        
+        public decimal RiskFactor
+        {
+            get => _riskFactor;
+            set
+            {
+                _riskFactor = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private decimal _riskFactor;
+
+        public string RiskFactorText
+        {
+            get => _riskFactorText;
+            set
+            {
+                if (decimal.TryParse(value, out var decimalValue))
+                    RiskFactor = decimal.Round(decimalValue, 2);
+
+                _riskFactorText = $"{RiskFactor:N0}";
+                RaisePropertyChanged();
+
+                // check if different with settings
+                if (_settings.RiskFactor == RiskFactor)
+                    return;
+
+                _settings.RiskFactor = RiskFactor;
+                SaveSettings();
+                CalculateAllocations();
+            }
+        }
+
+        private string _riskFactorText;
+
+        public decimal RetirementIncomeAdjustmentRate
+        {
+            get => _retirementIncomeAdjustmentRate;
+            set
+            {
+                _retirementIncomeAdjustmentRate = value;
+                RaisePropertyChanged();
+
+                // check if different with settings
+                if (_settings.RetirementIncomeAdjustmentRate == RetirementIncomeAdjustmentRate)
+                    return;
+
+                _settings.RetirementIncomeAdjustmentRate = RetirementIncomeAdjustmentRate;
+                SaveSettings();
+                CalculateAllocations();
+            }
+        }
+
+        private decimal _retirementIncomeAdjustmentRate;
+
+        public decimal InvestmentReturnRate
+        {
+            get => _investmentReturnRate;
+            set
+            {
+                _investmentReturnRate = value;
+                RaisePropertyChanged();
+
+                // check if different with settings
+                if (_settings.InvestmentReturnRate == InvestmentReturnRate)
+                    return;
+
+                _settings.InvestmentReturnRate = InvestmentReturnRate;
+                SaveSettings();
+                CalculateAllocations();
+            }
+        }
+
+        private decimal _investmentReturnRate;
+
+        public decimal TransitionYear401KSaving
+        {
+            get => _transitionYear401KSaving;
+            set
+            {
+                _transitionYear401KSaving = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private decimal _transitionYear401KSaving;
+
+        public string TransitionYear401KSavingText
+        {
+            get => _transitionYear401KSavingText;
+            set
+            {
+                if (decimal.TryParse(value, out var decimalValue))
+                    TransitionYear401KSaving = decimal.Round(decimalValue, 2);
+
+                _transitionYear401KSavingText = $"{TransitionYear401KSaving:N0}";
+                RaisePropertyChanged();
+
+                // check if different with settings
+                if (_settings.TransitionYear401KSaving == TransitionYear401KSaving)
+                    return;
+
+                _settings.TransitionYear401KSaving = TransitionYear401KSaving;
+                SaveSettings();
+                CalculateAllocations();
+            }
+        }
+
+        private string _transitionYear401KSavingText;
+
+        #endregion Bindings
+
         private void SaveSettings()
         {
             var result = SettingsService.UpdateYadexRetirementSettings(_settings);
             if (!result.Succeeded)
                 MessageBox.Show($"Couldn't save to settings {result.ErrorMessage}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
-
-        private string _retirementIncomeText;
-
-
-        #endregion
 
         private void FilterAssetsByYear(string yearSelected)
         {

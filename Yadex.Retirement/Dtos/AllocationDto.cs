@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Prism.Mvvm;
 using Yadex.Retirement.Models;
 
@@ -6,16 +7,21 @@ namespace Yadex.Retirement.Dtos
 {
     public class AllocationDto : BindableBase
     {
-        public AllocationDto(int year, string status)
+        public AllocationDto(int year, string status, decimal target)
         {
             Year = year;
             Status = status;
+            Target = target;
         }
 
         public int Year { get; }
         public string Status { get; }
+        
+        public decimal Target { get; }
 
-        public Asset[] Assets
+        public Asset[] PreAssets { get; set; }
+        
+        public Asset[] Assets 
         {
             get => _assets;
             set
@@ -24,19 +30,8 @@ namespace Yadex.Retirement.Dtos
                 AssetTotal = _assets.Sum(x => x.AssetAmount);
             }
         }
+        private Asset[] _assets;
 
-        private static string FormalizeNumber(decimal value)
-        {
-            var decimalNumber = decimal.Round(value, 2);
-            var sign = decimalNumber switch
-            {
-                0 => "",
-                > 0 => "+",
-                _ => "-"
-            };
-
-            return $"{sign}{decimalNumber:C2}";
-        }
 
         #region Bindings
 
@@ -67,7 +62,7 @@ namespace Yadex.Retirement.Dtos
         }
         private decimal _cashAmount;
 
-        public string CashAmountText => FormalizeNumber(_cashAmount);
+        public string CashAmountText => $@"{(-_cashAmount).ToKilo()} / {AssetsHelper.GetTotalWithChange(Assets.ForCash(), PreAssets.ForCash())}";
 
         public decimal R401KAmount
         {
@@ -81,7 +76,7 @@ namespace Yadex.Retirement.Dtos
         }
         private decimal _r401KAmount;
 
-        public string R401KAmountText => FormalizeNumber(_r401KAmount);
+        public string R401KAmountText => $@"{(-_r401KAmount).ToKilo()} / {AssetsHelper.GetTotalWithChange(Assets.For401K(), PreAssets.For401K())}";
 
         public decimal AssetTotal
         {
@@ -95,7 +90,7 @@ namespace Yadex.Retirement.Dtos
         }
 
         private decimal _assetTotal;
-        public string AssetTotalText => FormalizeNumber(_assetTotal);
+        public string AssetTotalText => AssetsHelper.GetTotalWithChange(Assets, PreAssets);
 
         public string AssetTotalChanged
         {
@@ -121,7 +116,7 @@ namespace Yadex.Retirement.Dtos
         }
 
         private decimal _socialSecurityAmount;
-        public string SocialSecurityAmountText => FormalizeNumber(SocialSecurityAmount);
+        public string SocialSecurityAmountText => $"-{SocialSecurityAmount.ToKilo()}";
 
         public decimal PensionAmount
         {
@@ -135,7 +130,7 @@ namespace Yadex.Retirement.Dtos
         }
 
         private decimal _pensionAmount;
-        public string PensionAmountText => FormalizeNumber(_pensionAmount);
+        public string PensionAmountText => $"-{_pensionAmount.ToKilo()}";
 
         public decimal FixedAmount
         {
@@ -149,8 +144,7 @@ namespace Yadex.Retirement.Dtos
         }
 
         private decimal _fixedAmount;
-        private Asset[] _assets;
-        public string FixedAmountText => FormalizeNumber(_fixedAmount);
+        public string FixedAmountText => $"-{_fixedAmount.ToKilo()} / {Assets.ForFixedTotal().ToKilo()}";
 
         public decimal TotalWithdrawal =>
             _fixedAmount + 
@@ -159,7 +153,7 @@ namespace Yadex.Retirement.Dtos
             _r401KAmount + 
             _cashAmount;
 
-        public string TotalWithdrawalText => FormalizeNumber(TotalWithdrawal);
+        public string TotalWithdrawalText => $"{Math.Abs(TotalWithdrawal).ToKilo()} / target {Target.ToKilo()}";
 
         #endregion
     }

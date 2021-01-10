@@ -1,44 +1,48 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Yadex.Retirement.Models;
 
 namespace Yadex.Retirement.Services
 {
-    public class SimpleTransformerBeforeRetired
+    public class SimpleTransformer
     {
-        public static Asset[] Transform(DateTime assetDate, Asset[] preAssets)
+        private readonly decimal _rate;
+        private readonly decimal _saving401K;
+
+        public SimpleTransformer(decimal rate, decimal saving401K = 0m)
+        {
+            _rate = rate;
+            _saving401K = saving401K;
+        }
+        
+        public List<Asset> Transform(DateTime assetDate, Asset[] preAssets)
         {
             return preAssets.Select(x =>
             {
                 var asset = x switch
                 {
-                    { AssetType: AssetTypes.Fixed } => 
-                        x with 
-                            {
-                            AssetDate = assetDate,
-                            },
-                    { AssetType: AssetTypes.RetirementPension } =>
+                    { AssetType: AssetTypes.Fixed } =>
                         x with
                             {
                             AssetDate = assetDate,
-                            AssetAmount = x.AssetAmount + 10000
                             },
                     { AssetType: AssetTypes.Retirement401K } =>
                         x with
                             {
                             AssetDate = assetDate,
-                            AssetAmount = x.AssetAmount + (19500 * 1.07m)
-                            },
+                            AssetAmount = (x.AssetAmount + _saving401K) * (1 + _rate)
+                        },
                     _ =>
                         x with
                             {
                             AssetDate = assetDate,
-                            AssetAmount = x.AssetAmount * 1.04m
+                            AssetAmount = x.AssetAmount * (1 + _rate)
                             },
                 };
-                    
+
                 return asset;
-            }).ToArray();
+            }).ToList();
         }
     }
 }

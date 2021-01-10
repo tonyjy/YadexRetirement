@@ -34,13 +34,29 @@ namespace Yadex.Retirement.Services
             if (assets.Length == 0)
                 return new MsgResult<AllocationDto[]>(true, string.Empty, Array.Empty<AllocationDto>());
 
+            // calc the actual assets, 
             GetActualYears(assets);
 
+            // estimate until retirement year inclusively, e.g. 55 
             GetTransitionYears();
 
+            // Apply Risk Factor
+            ApplyRiskFactor();
+            
+            // estimate after retirement year, e.g. starting 56 to 95
             GetRetirementYears();
 
             return new MsgResult<AllocationDto[]>(true, string.Empty, AllocationDict.Values.ToArray());
+        }
+
+        private void ApplyRiskFactor()
+        {
+            var dto = AllocationDict[AllocationDict.Keys.Max()];
+
+            var assets = dto.Assets.ToList();
+            SimpleCashAllocator.Allocate(assets, _settings.RiskFactor);
+            
+            dto.Assets = assets.ToArray();
         }
 
         /// <summary>
@@ -57,21 +73,20 @@ namespace Yadex.Retirement.Services
             
             for (var year = minYr ; year <= maxYr; year++)
             {
-                var curAssets = AssetsHelper.GetAssetsForYear(assets, year);
+                var curAssets = assets.ForYear(year);
                 var curTotal = curAssets.Sum(x => x.AssetAmount);
-                var preTotal = AllocationDict.ContainsKey(year - 1)
-                    ? AllocationDict[year - 1].AssetTotal
-                    : 0;
+                var preDto = AllocationDict.ContainsKey(year - 1) ? AllocationDict[year - 1] : null;
+                var preTotal = preDto?.AssetTotal ?? 0m;
 
-                var dto = new AllocationDto(year, AllocationStatusTypes.Actual)
+                var dto = new AllocationDto(year, AllocationStatusTypes.Actual, _settings.RetirementIncome)
                 {
                     AgeYear = new RetirementAge(year - BirthYear, year).ToString(),
                     AssetTotal = curTotal,
                     Assets = curAssets,
+                    PreAssets = preDto?.Assets ?? new Asset[0],
                     AssetTotalChanged = AssetsHelper.GetTotalWithChange(curTotal, preTotal)
                 };
                 
-
                 AllocationDict.Add(year, dto);
             }
         }
@@ -89,15 +104,17 @@ namespace Yadex.Retirement.Services
                 var preAssets = preDto.Assets;
 
                 var assetDate = new DateTime(year, 12, 31);
-                var assets = SimpleTransformerBeforeRetired.Transform(assetDate, preAssets);
+                var transformer = new SimpleTransformer(_settings.InvestmentReturnRate, _settings.TransitionYear401KSaving);
+                var assets = transformer.Transform(assetDate, preAssets);
                 
                 var preTotal = preDto.AssetTotal;
                 var curTotal = assets.Sum(x => x.AssetAmount);
 
-                var dto = new AllocationDto(year, AllocationStatusTypes.Estimated)
+                var dto = new AllocationDto(year, AllocationStatusTypes.Estimated, _settings.RetirementIncome)
                 {
                     AgeYear = new RetirementAge(year - BirthYear, year).ToString(),
-                    Assets = assets,
+                    Assets = assets.ToArray(),
+                    PreAssets = preDto.Assets,
                     AssetTotalChanged = AssetsHelper.GetTotalWithChange(curTotal, preTotal)
                 };
                 AllocationDict.Add(year, dto);
@@ -113,7 +130,6 @@ namespace Yadex.Retirement.Services
         private void GetRetirementYears()
         {
             var preYear = AllocationDict.Keys.Max();
-
             var minYr = preYear + 1;
 
             var r401KAge = BirthYear + 60;
@@ -121,85 +137,23 @@ namespace Yadex.Retirement.Services
             var maxAge = BirthYear + 95;
 
             // Retired Before 401K (age 60)
-            AllocateBefore401K(minYr, r401KAge);
+            AllocateRetiredEarlyBefore401K(minYr, r401KAge);
 
             // Retired Before Pension (age 65)
-            AllocateBeforePension(r401KAge, pensionAge, maxAge);
+            AllocateRetiredEarlyBeforeSocialAndPension(r401KAge, pensionAge, maxAge);
 
             // Add social security and pension (age > 65)
-            AllocateAfterPension(pensionAge, maxAge);
+            AllocateRetiredFully(pensionAge, maxAge);
         }
 
-        private void AllocateAfterPension(int pensionAge, int maxAge)
-        {
-            for (var year = pensionAge; year < maxAge; year++)
-            {
-                var preDto = AllocationDict[year - 1];
-                var preAssets = preDto.Assets;
-
-                var assetDate = new DateTime(year, 12, 31);
-                var assets = SimpleTransformerBeforePension.Transform(assetDate, preAssets);
-
-                // 401K
-                var r401Amount = SimpleR401KAllocator.Allocate(assets, maxAge, year);
-
-                // Cash
-                var totalWithdrawal = GetTotalWithdrawal(preDto);
-                var cashPortion = (totalWithdrawal - r401Amount - PensionIncome - SocialSecurityIncome) ;
-                var cashAmount = cashPortion >= 0 ? cashPortion : 0m;
-                SimpleCashAllocator.Allocate(assets, cashAmount);
-
-                var preTotal = preDto.AssetTotal;
-                var curTotal = assets.Sum(x => x.AssetAmount);
-
-                var dto = new AllocationDto(year, AllocationStatusTypes.RetiredEstimated)
-                {
-                    AgeYear = new RetirementAge(year - BirthYear, year).ToString(),
-                    CashAmount = cashAmount,
-                    R401KAmount = r401Amount,
-                    SocialSecurityAmount = SocialSecurityIncome,
-                    PensionAmount = PensionIncome,
-                    Assets = assets.ToArray(),
-                    AssetTotalChanged = AssetsHelper.GetTotalWithChange(curTotal, preTotal)
-                };
-                AllocationDict.Add(year, dto);
-            }
-        }
-
-        private void AllocateBeforePension(int r401KAge, int pensionAge, int maxAge)
-        {
-            for (var year = r401KAge; year < pensionAge; year++)
-            {
-                var preDto = AllocationDict[year - 1];
-                var preAssets = preDto.Assets;
-
-                var assetDate = new DateTime(year, 12, 31);
-                var assets = SimpleTransformerBeforePension.Transform(assetDate, preAssets);
-
-                // 401K
-                var r401Amount = SimpleR401KAllocator.Allocate(assets, maxAge, year);
-
-                // Cash
-                var totalWithdrawal = GetTotalWithdrawal(preDto);
-                var cashAmount = r401Amount >= totalWithdrawal ? 0m : totalWithdrawal - r401Amount;
-                SimpleCashAllocator.Allocate(assets, cashAmount);
-
-                var preTotal = preDto.AssetTotal;
-                var curTotal = assets.Sum(x => x.AssetAmount);
-
-                var dto = new AllocationDto(year, AllocationStatusTypes.RetiredEstimated)
-                {
-                    AgeYear = new RetirementAge(year - BirthYear, year).ToString(),
-                    CashAmount = cashAmount,
-                    R401KAmount = r401Amount,
-                    Assets = assets.ToArray(),
-                    AssetTotalChanged = AssetsHelper.GetTotalWithChange(curTotal, preTotal)
-                };
-                AllocationDict.Add(year, dto);
-            }
-        }
-
-        private void AllocateBefore401K(int minYr, int r401KAge)
+        #region Retired
+        
+        /// <summary>
+        /// Retired but before 60 years old (401K). Cash only.
+        /// </summary>
+        /// <param name="minYr"></param>
+        /// <param name="r401KAge"></param>
+        private void AllocateRetiredEarlyBefore401K(int minYr, int r401KAge)
         {
             for (var year = minYr; year < r401KAge; year++)
             {
@@ -207,31 +161,107 @@ namespace Yadex.Retirement.Services
                 var preAssets = preDto.Assets;
 
                 var assetDate = new DateTime(year, 12, 31);
-                var assets = SimpleTransformerRetiredBefore401K.TransformAssets(assetDate, preAssets);
 
-                var amount = _settings.RetirementIncome;
-                SimpleCashAllocator.Allocate(assets, amount);
+                var transformer = new SimpleTransformer(_settings.InvestmentReturnRate);
+                var assets = transformer.Transform(assetDate, preAssets);
+
+                var target = GetTarget(preDto);
+                var cashWithdrawal = SimpleCashAllocator.Allocate(assets, target);
 
                 var preTotal = preDto.AssetTotal;
                 var curTotal = assets.Sum(x => x.AssetAmount);
 
-                var totalWithdrawal = GetTotalWithdrawal(preDto);
-                var dto = new AllocationDto(year, AllocationStatusTypes.RetiredEstimated)
+                var dto = new AllocationDto(year, AllocationStatusTypes.RetiredEstimated, target)
                 {
                     AgeYear = new RetirementAge(year - BirthYear, year).ToString(),
-                    CashAmount = totalWithdrawal,
+                    CashAmount = cashWithdrawal,
                     Assets = assets.ToArray(),
+                    PreAssets = preDto.Assets,
                     AssetTotalChanged = AssetsHelper.GetTotalWithChange(curTotal, preTotal)
                 };
                 AllocationDict.Add(year, dto);
             }
         }
 
-        private decimal GetTotalWithdrawal(AllocationDto preDto)
+        private void AllocateRetiredEarlyBeforeSocialAndPension(int r401KAge, int pensionAge, int maxAge)
         {
-            return preDto.TotalWithdrawal == 0
-                ? _settings.RetirementIncome
-                : preDto.TotalWithdrawal * 1.01m;
+            for (var year = r401KAge; year < pensionAge; year++)
+            {
+                var preDto = AllocationDict[year - 1];
+                var preAssets = preDto.Assets;
+
+                var assetDate = new DateTime(year, 12, 31);
+                var transformer = new SimpleTransformer(_settings.InvestmentReturnRate);
+                var assets = transformer.Transform(assetDate, preAssets);
+
+                // 401K
+                var r401Amount = SimpleR401KAllocator.Allocate(assets, maxAge, year);
+
+                // Cash
+                var target = GetTarget(preDto);
+                var cashAmount = r401Amount >= target ? 0m : target - r401Amount;
+                var cashWithdrawal = SimpleCashAllocator.Allocate(assets, cashAmount);
+
+                var preTotal = preDto.AssetTotal;
+                var curTotal = assets.Sum(x => x.AssetAmount);
+
+                var dto = new AllocationDto(year, AllocationStatusTypes.RetiredEstimated, target)
+                {
+                    AgeYear = new RetirementAge(year - BirthYear, year).ToString(),
+                    CashAmount = cashWithdrawal,
+                    R401KAmount = r401Amount,
+                    Assets = assets.ToArray(),
+                    PreAssets = preDto.Assets,
+                    AssetTotalChanged = AssetsHelper.GetTotalWithChange(curTotal, preTotal)
+                };
+                AllocationDict.Add(year, dto);
+            }
         }
+
+        private void AllocateRetiredFully(int pensionAge, int maxAge)
+        {
+            for (var year = pensionAge; year < maxAge; year++)
+            {
+                var preDto = AllocationDict[year - 1];
+                var preAssets = preDto.Assets;
+
+                var assetDate = new DateTime(year, 12, 31);
+                var transformer = new SimpleTransformer(_settings.InvestmentReturnRate);
+                var assets = transformer.Transform(assetDate, preAssets);
+
+                // 401K
+                var r401Amount = SimpleR401KAllocator.Allocate(assets, maxAge, year);
+
+                // Cash
+                var target = GetTarget(preDto);
+                var cashPortion = (target - r401Amount - PensionIncome - SocialSecurityIncome);
+                var cashAmount = cashPortion >= 0 ? cashPortion : 0m;
+                var cashWithdrawal = SimpleCashAllocator.Allocate(assets, cashAmount);
+
+                var preTotal = preDto.AssetTotal;
+                var curTotal = assets.Sum(x => x.AssetAmount);
+
+                var dto = new AllocationDto(year, AllocationStatusTypes.RetiredEstimated, target)
+                {
+                    AgeYear = new RetirementAge(year - BirthYear, year).ToString(),
+                    CashAmount = cashWithdrawal,
+                    R401KAmount = r401Amount,
+                    SocialSecurityAmount = SocialSecurityIncome,
+                    PensionAmount = PensionIncome,
+                    Assets = assets.ToArray(),
+                    PreAssets = preDto.Assets,
+                    AssetTotalChanged = AssetsHelper.GetTotalWithChange(curTotal, preTotal)
+                };
+                AllocationDict.Add(year, dto);
+            }
+        }
+        private decimal GetTarget(AllocationDto preDto)
+        {
+            return preDto.Target == 0
+                ? _settings.RetirementIncome
+                : preDto.Target * (1 + _settings.RetirementIncomeAdjustmentRate);
+        }
+
+        #endregion
     }
 }

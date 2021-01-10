@@ -24,7 +24,8 @@ namespace Yadex.Retirement.Services
                 assets.Add(assetModified);
             }
 
-            return r401Assets.Sum(x => x.AssetAmount) / (maxAge - year);
+            var r401KTotal = r401Assets.Sum(x => x.AssetAmount);
+            return r401KTotal / (maxAge - year);
         }
     }
 }
