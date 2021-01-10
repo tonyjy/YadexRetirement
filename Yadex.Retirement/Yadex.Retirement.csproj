@@ -9,10 +9,10 @@
       <AssemblyName>Yadex.Retirement</AssemblyName>
       <RootNamespace>Yadex.Retirement</RootNamespace>
 	  <PackageId>YadexRetirement</PackageId>
-	  <Version>1.1.0</Version>
+	  <Version>1.2.0</Version>
 	  <Authors>tonyjy</Authors>
 	  <Company>Yadex</Company>
-	  <PackageDescription>Yadex Retirement v1.1 is an asset management application for F.I.R.(E.) — Financial Independence, Retire (Early.)</PackageDescription>
+	  <PackageDescription>Yadex Retirement v1.2 is an asset management application for F.I.R.(E.) — Financial Independence, Retire (Early.)</PackageDescription>
 	  <RepositoryUrl>https://github.com/tonyjy/YadexRetirement</RepositoryUrl>
   </PropertyGroup>
 
