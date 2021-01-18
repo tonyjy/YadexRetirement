@@ -1,5 +1,13 @@
-﻿using System.Windows;
+﻿using System;
+using System.Data;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Forms;
 using System.Windows.Input;
+using Yadex.Retirement.Common;
 using Yadex.Retirement.Views;
 
 namespace Yadex.Retirement
@@ -35,6 +43,21 @@ namespace Yadex.Retirement
             settingsDialog.ShowDialog();
             
             ViewModel.RefreshViewModel();
+        }
+
+        private void SaveCsv_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new FolderBrowserDialog();
+            if (dlg.ShowDialog() != System.Windows.Forms.DialogResult.OK) 
+                return;
+            
+            var path = Path.Combine(dlg.SelectedPath, $"Yadex Forecast {DateTime.Now:yyyy-MM-dd}.csv");
+
+            var x = 0;
+            while (File.Exists(path))
+                path = $"Yadex Forecast {DateTime.Now:yyyy-MM-dd} ({++x}).csv";
+
+            File.WriteAllText(path, DataGridHelper.ConvertToCsv(ForecastGrid));
         }
     }
 }

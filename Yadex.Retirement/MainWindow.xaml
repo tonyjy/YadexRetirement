@@ -229,13 +229,22 @@
             </Grid.ColumnDefinitions>
 
             <DataGrid
-                Name="DataGrid"
+                Name="ForecastGrid"
                 Grid.Column="1"
                 Grid.ColumnSpan="2"
                 AutoGenerateColumns="False"
                 IsReadOnly="True"
+                EnableRowVirtualization="False"
+                EnableColumnVirtualization="False"
                 ItemsSource="{Binding AllAllocations}"
                 SelectionMode="Single">
+
+                <DataGrid.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Click="SaveCsv_Click" Header="Save as CSV ..." />
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
+
                 <DataGrid.Columns>
                     <DataGridTextColumn
                         Width="*"
