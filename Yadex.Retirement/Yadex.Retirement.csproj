@@ -2,17 +2,17 @@
 
   <PropertyGroup>
       <OutputType>WinExe</OutputType>
-      <TargetFramework>net5.0-windows</TargetFramework>
+      <TargetFramework>net6.0-windows</TargetFramework>
       <UseWPF>true</UseWPF>
 	  <UseWindowsForms>true</UseWindowsForms>
       <ApplicationIcon>icon.ico</ApplicationIcon>
       <AssemblyName>Yadex.Retirement</AssemblyName>
       <RootNamespace>Yadex.Retirement</RootNamespace>
 	  <PackageId>YadexRetirement</PackageId>
-	  <Version>1.2.0</Version>
+	  <Version>1.3.0</Version>
 	  <Authors>tonyjy</Authors>
 	  <Company>Yadex</Company>
-	  <PackageDescription>Yadex Retirement v1.2 is an asset management application for F.I.R.(E.) — Financial Independence, Retire (Early.)</PackageDescription>
+	  <PackageDescription>Yadex Retirement is a retirement forecasting application.</PackageDescription>
 	  <RepositoryUrl>https://github.com/tonyjy/YadexRetirement</RepositoryUrl>
   </PropertyGroup>
 

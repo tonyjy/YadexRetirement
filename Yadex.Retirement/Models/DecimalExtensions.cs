@@ -1,10 +1,9 @@
-﻿namespace Yadex.Retirement.Models
+﻿namespace Yadex.Retirement.Models;
+
+public static class DecimalExtensions
 {
-    public static class DecimalExtensions
+    public static string ToKilo(this decimal value)
     {
-        public static string ToKilo(this decimal value)
-        {
-            return $"{(int)value / 1000}k";
-        }
+        return $"{(int)value / 1000}k";
     }
 }

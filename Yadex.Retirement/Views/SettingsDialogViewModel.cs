@@ -1,13 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Windows;
 using Prism.Mvvm;
-using Yadex.Retirement.Common;
-using Yadex.Retirement.Models;
 using Yadex.Retirement.Services;
 
 namespace Yadex.Retirement.Views

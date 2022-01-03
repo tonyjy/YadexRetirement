@@ -1,13 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using Yadex.Retirement.Common;
-using Yadex.Retirement.Dtos;
-using Yadex.Retirement.Models;
+﻿namespace Yadex.Retirement.Services;
 
-namespace Yadex.Retirement.Services
+public interface IAllocationService
 {
-    public interface IAllocationService
-    {
-        MsgResult<AllocationDto[]> GetAllAllocations(Asset[] assets);
-    }
+    MsgResult<AllocationDto[]> GetAllAllocations(Asset[] assets);
 }

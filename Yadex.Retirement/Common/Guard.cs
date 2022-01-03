@@ -1,16 +1,13 @@
-using System;
+namespace Yadex.Retirement.Common;
 
-namespace Yadex.Retirement.Common
+public class Guard
 {
-    public class Guard
+    public static T NotNull<T>(string name, T obj)
     {
-        public static T NotNull<T>(string name, T obj)
+        return obj switch
         {
-            return obj switch
-            {
-                not null => obj,
-                _ => throw new ArgumentNullException(name)
-            };
-        }
+            not null => obj,
+            _ => throw new ArgumentNullException(name)
+        };
     }
 }
