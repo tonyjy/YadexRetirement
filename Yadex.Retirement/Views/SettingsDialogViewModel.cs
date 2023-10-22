@@ -3,6 +3,7 @@ using System.IO;
 using System.Windows;
 using Prism.Mvvm;
 using Yadex.Retirement.Services;
+using Yadex.Retirement.Services.SettingSvc;
 
 namespace Yadex.Retirement.Views
 {

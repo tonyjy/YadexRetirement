@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Text.Json;
 
-namespace Yadex.Retirement.Services;
+namespace Yadex.Retirement.Services.AssetSvc;
 
 /// <summary>
 ///     Json file implementation for <see cref="IAssetService" />.
@@ -174,7 +174,7 @@ public class JsonFileAssetService : IAssetService
         try
         {
             var path = GetFilePath(year);
-
+            
             var assets = JsonSerializer
                 .Deserialize<Asset[]>(File.ReadAllText(path))?
                 .OrderBy(x => x.AssetType)
@@ -187,8 +187,8 @@ public class JsonFileAssetService : IAssetService
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw;
+            // If file doesn't exist, return empty.
+            return new MsgResult<Asset[]>(false, $"Error load year {year} - {e.Message}", Array.Empty<Asset>());
         }
 
     }

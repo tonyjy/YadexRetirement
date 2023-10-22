@@ -1,4 +1,4 @@
-﻿namespace Yadex.Retirement.Services;
+﻿namespace Yadex.Retirement.Services.SettingSvc;
 
 /// <summary>
 /// Service to retrieve the settings for Yadex application.

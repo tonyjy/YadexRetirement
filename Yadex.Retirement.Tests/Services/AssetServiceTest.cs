@@ -1,4 +1,5 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Yadex.Retirement.Services.SettingSvc;
 
 namespace Yadex.Retirement.Tests.Services
 {

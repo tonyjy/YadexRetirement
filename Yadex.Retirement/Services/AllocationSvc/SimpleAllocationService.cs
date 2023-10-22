@@ -1,4 +1,4 @@
-﻿namespace Yadex.Retirement.Services;
+﻿namespace Yadex.Retirement.Services.AllocationSvc;
 
 public class SimpleAllocationService : IAllocationService
 {

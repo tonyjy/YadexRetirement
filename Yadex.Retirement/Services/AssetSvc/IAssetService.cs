@@ -1,4 +1,4 @@
-﻿namespace Yadex.Retirement.Services;
+﻿namespace Yadex.Retirement.Services.AssetSvc;
 
 public interface IAssetService
 {

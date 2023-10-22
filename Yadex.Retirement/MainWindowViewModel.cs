@@ -2,6 +2,9 @@
 using System.Windows;
 using Prism.Mvvm;
 using Yadex.Retirement.Services;
+using Yadex.Retirement.Services.AllocationSvc;
+using Yadex.Retirement.Services.AssetSvc;
+using Yadex.Retirement.Services.SettingSvc;
 
 namespace Yadex.Retirement;
 

@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Text.Json;
 
-namespace Yadex.Retirement.Services;
+namespace Yadex.Retirement.Services.SettingSvc;
 
 /// <summary>
 ///     Json file implementation for <see cref="IYadexRetirementSettingsService" />.
