@@ -36,6 +36,7 @@ public partial class MainWindowViewModel
             dtoList.Add(performanceDto);
         }
         VisibleAssets = new ObservableCollection<PerformanceDto>(dtoList);
+        LatestAssetTotal = VisibleAssets.Sum(x => x.Asset.AssetAmount).ToString("C");
     }
 
     /// <summary>

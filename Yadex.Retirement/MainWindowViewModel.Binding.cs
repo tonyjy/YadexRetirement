@@ -82,30 +82,6 @@ public partial class MainWindowViewModel
 
     private ObservableCollection<PerformanceDto> _visibleAssets;
 
-    ////private ObservableCollection<PerformanceDto> _allAssets;
-
-    ////public ObservableCollection<PerformanceDto> AllAssets
-    ////{
-    ////    get => _allAssets;
-    ////    set
-    ////    {
-    ////        _allAssets = value;
-    ////        RaisePropertyChanged();
-    ////    }
-    ////}
-
-    //public ObservableCollection<PerformanceDto> LatestAssets
-    //{
-    //    get => _latestAssets;
-    //    set
-    //    {
-    //        _latestAssets = value;
-    //        RaisePropertyChanged();
-    //    }
-    //}
-
-    //private ObservableCollection<PerformanceDto> _latestAssets;
-
     public PerformanceDto AssetSelected
     {
         get => _assetSelected;
