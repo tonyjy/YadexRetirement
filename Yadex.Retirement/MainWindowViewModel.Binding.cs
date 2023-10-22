@@ -40,6 +40,18 @@ public partial class MainWindowViewModel
 
     private void InitYearsDropdown()
     {
+        // Get existing files
+        var output = AssetService.GetYearAssetsDict();
+        if (output.Succeeded)
+        {
+            var dict = output.Result;
+            var existingYears = dict.Keys.OrderByDescending(y => y).Select(x => x.ToString()).ToList();
+            FilterYearList = new ObservableCollection<string>(existingYears);
+            YearSelected = existingYears.First();
+            return;
+        }
+        
+        // Default setting
         var list = new List<string> { };
         var thisYear = DateTime.Now.Year;
         list.AddRange(Enumerable.Range(thisYear, 20)

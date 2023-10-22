@@ -64,7 +64,7 @@
                 Grid.Row="1"
                 Grid.Column="2"
                 Margin="3"
-                SelectedDate="{Binding AssetDate}" />
+                SelectedDate="{Binding AssetDate, UpdateSourceTrigger=PropertyChanged}" />
 
             <Label
                 Grid.Row="2"
