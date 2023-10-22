@@ -29,6 +29,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="MainWindow - Copy %282%29.xaml.cs">
+      <DependentUpon>MainWindowViewModel.cs</DependentUpon>
+    </Compile>
+    <Compile Update="MainWindow - Copy - Copy.xaml.cs">
+      <DependentUpon>MainWindowViewModel.Action.cs</DependentUpon>
+    </Compile>
+    <Compile Update="MainWindow - Copy.xaml.cs">
+      <DependentUpon>MainWindowViewModel.cs</DependentUpon>
+    </Compile>
     <Compile Update="MainWindow.xaml.cs">
       <DependentUpon>MainWindowViewModel.cs</DependentUpon>
     </Compile>

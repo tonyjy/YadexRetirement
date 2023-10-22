@@ -37,5 +37,21 @@ namespace Yadex.Retirement.Views
             ViewModel.IsNew = true;
             ViewModel.AssetId = Guid.NewGuid();
         }
+
+        private void OnDeleteClick(object sender, RoutedEventArgs e)
+        {
+            var errors = ViewModel.DeleteViewModel();
+            if (errors.Count > 0)
+            {
+                MessageBox.Show(this, string.Join("\n", errors), "Errors", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            // succeeded
+            MessageBox.Show("Delete successfully!");
+            Close();
+            ViewModel.Parent.RefreshViewModel();
+        }
+
     }
 }

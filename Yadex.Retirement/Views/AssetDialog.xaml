@@ -108,7 +108,8 @@
         <!--  Buttons  -->
         <Grid Grid.Row="3">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="185" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="75" />
                 <ColumnDefinition Width="75" />
                 <ColumnDefinition Width="75" />
                 <ColumnDefinition Width="75" />
@@ -133,6 +134,13 @@
                 Click="OnDuplicateClick"
                 Content="Duplicate" />
 
+            <Button
+                Grid.Column="4"
+                Margin="10,1"
+                Click="OnDeleteClick"
+                IsEnabled="{Binding IsDeleteEnabled}">
+                Delete
+            </Button>
         </Grid>
     </Grid>
 </Window>

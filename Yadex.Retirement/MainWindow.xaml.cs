@@ -21,7 +21,7 @@ namespace Yadex.Retirement
             DataContext = ViewModel = new MainWindowViewModel();
         }
 
-        public MainWindowViewModel ViewModel { get; init; }
+        private MainWindowViewModel ViewModel { get; init; }
 
         private void AddAssetButton_Click(object sender, RoutedEventArgs e)
         {

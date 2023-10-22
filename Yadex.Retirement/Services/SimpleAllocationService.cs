@@ -19,12 +19,12 @@ public class SimpleAllocationService : IAllocationService
     /// <summary>
     /// This is the main entry point for calculate the allocations
     /// </summary>
-    public MsgResult<AllocationDto[]> GetAllAllocations(Asset[] assets)
+    public MsgResult<AllocationDto[]> GetAllAllocations(Dictionary<int, Asset[]> assets)
     {
         Guard.NotNull(nameof(assets), assets);
 
         // if assets are empty, return now
-        if (assets.Length == 0)
+        if (assets.Count == 0)
             return new MsgResult<AllocationDto[]>(true, string.Empty, Array.Empty<AllocationDto>());
 
         // calc the actual assets, 
@@ -57,16 +57,13 @@ public class SimpleAllocationService : IAllocationService
     /// </summary>
     /// <param name="assets">All assets over the years</param>
     /// <returns>The max year in the assets </returns>
-    private void GetActualYears(Asset[] assets)
+    private void GetActualYears(Dictionary<int, Asset[]> assets)
     {
         // calculate the actual allocations
-        var years = assets.Select(x => x.AssetDate.Year).Distinct().ToArray();
-        var minYr = years.Min();
-        var maxYr = years.Max();
-
-        for (var year = minYr; year <= maxYr; year++)
+        foreach(var kv in assets)
         {
-            var curAssets = assets.ForYear(year);
+            var year = kv.Key;
+            var curAssets = kv.Value;
             var curTotal = curAssets.Sum(x => x.AssetAmount);
             var preDto = AllocationDict.ContainsKey(year - 1) ? AllocationDict[year - 1] : null;
             var preTotal = preDto?.AssetTotal ?? 0m;

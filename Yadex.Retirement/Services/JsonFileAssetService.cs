@@ -8,13 +8,12 @@ namespace Yadex.Retirement.Services;
 /// </summary>
 public class JsonFileAssetService : IAssetService
 {
-    private const string AddAssetAction = "AddAssetAction";
-    private const string UpdateAssetAction = "UpdateAssetAction";
-    private const string DeleteAssetAction = "DeleteAssetAction";
-
     // Json file's root folder
     private readonly string _rootPath;
-
+    
+    // Json file's search pattern
+    private const string SearchPattern = "Asset_????.json";
+    
     /// <summary>
     ///     Constructor with rootPath
     /// </summary>
@@ -24,61 +23,30 @@ public class JsonFileAssetService : IAssetService
         _rootPath = rootPath;
     }
 
-    private string CurrentFilePath
-    {
-        get
-        {
-            CheckRootDir();
-
-            // Default file name is Asset.json
-            var filePath = Path.Combine(_rootPath, "Asset.json");
-
-            // if this is the first time, we need to create an empty file
-            if (!File.Exists(filePath))
-                File.WriteAllText(filePath, JsonSerializer.Serialize(Array.Empty<Asset>()));
-
-            return filePath;
-        }
-    }
-
-    private string AuditFilePath
-    {
-        get
-        {
-            CheckRootDir();
-
-            // Default file name is Asset.json
-            var filePath = Path.Combine(_rootPath, $"Asset_Audit_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.json");
-
-            // if this is the first time, we need to create an empty file
-            if (!File.Exists(filePath))
-                File.WriteAllText(filePath, JsonSerializer.Serialize(Array.Empty<Asset>()));
-
-            return filePath;
-        }
-    }
-
     /// <summary>
     ///     Add an asset <see cref="Asset" />.
     /// </summary>
+    /// <param name="year"></param>
     /// <param name="asset"></param>
     /// <returns></returns>
-    public MsgResult<string> AddAsset(Asset asset)
+    public MsgResult<string> AddAsset(int year, Asset asset)
     {
         try
         {
-            var (succeeded, errorMessage, oldAssets) = GetAllAssets();
+            var (succeeded, errorMessage, assets) = GetAssetsByYear(year);
             if (!succeeded)
-                throw new Exception($"Get all assets failed. {errorMessage}");
+                throw new Exception($"Get assets failed | year={year}. {errorMessage}");
 
 
             // validate 
-            var existing = oldAssets.SingleOrDefault(x => x.AssetId == asset.AssetId);
+            var existing = assets.SingleOrDefault(x => x.AssetId == asset.AssetId);
             if (existing != null)
                 throw new Exception($"Record has been found for {asset.AssetId.ToString()}");
 
             // act
-            SaveAssets(oldAssets.ToList(), null, asset, AddAssetAction);
+            var savingAssets = new List<Asset>(assets) { asset };
+
+            SaveAssets(year, savingAssets);
 
             return new MsgResult<string>();
         }
@@ -92,24 +60,29 @@ public class JsonFileAssetService : IAssetService
     /// <summary>
     ///     Update an asset <see cref="Asset" />.
     /// </summary>
+    /// <param name="year"></param>
     /// <param name="updatedAsset"></param>
     /// <returns></returns>
-    public MsgResult<string> UpdateAsset(Asset updatedAsset)
+    public MsgResult<string> UpdateAsset(int year, Asset updatedAsset)
     {
         try
         {
-            var (succeeded, errorMessage, oldAssets) = GetAllAssets();
+            var (succeeded, errorMessage, assets) = GetAssetsByYear(year);
             if (!succeeded)
-                throw new Exception($"Get all assets failed. {errorMessage}");
+                throw new Exception($"Get assets failed | year={year}. {errorMessage}");
 
             // validate 
-            var asset = oldAssets.SingleOrDefault(x => x.AssetId == updatedAsset.AssetId);
+            var assetId = updatedAsset.AssetId;
+            var asset = assets.SingleOrDefault(x => x.AssetId == assetId);
             if (asset == null)
-                throw new Exception($"Record cannot be found for {updatedAsset.AssetId}");
+                throw new Exception($"Record cannot be found for {assetId}");
 
-            // act
-            SaveAssets(oldAssets.ToList(), asset, updatedAsset, UpdateAssetAction);
-
+            // remove the existing one and add updated one
+            var savingAssets = assets.Where(x => x.AssetId != assetId).ToList();
+            updatedAsset.LastUpdatedTime = DateTime.Now;
+            savingAssets.Add(updatedAsset);
+            
+            SaveAssets(year, savingAssets);
             return new MsgResult<string>();
         }
         catch (Exception e)
@@ -121,23 +94,25 @@ public class JsonFileAssetService : IAssetService
     /// <summary>
     ///     Delete an asset <see cref="Asset" />.
     /// </summary>
+    /// <param name="year"></param>
     /// <param name="assetId"></param>
     /// <returns></returns>
-    public MsgResult<string> DeleteAsset(Guid assetId)
+    public MsgResult<string> DeleteAsset(int year, Guid assetId)
     {
         try
         {
-            var (succeeded, errorMessage, oldAssets) = GetAllAssets();
+            var (succeeded, errorMessage, assets) = GetAssetsByYear(year);
             if (!succeeded)
-                throw new Exception($"Get all assets failed. {errorMessage}");
+                throw new Exception($"Get assets failed | year={year}. {errorMessage}");
 
             // validate 
-            var asset = oldAssets.SingleOrDefault(x => x.AssetId == assetId);
+            var asset = assets.SingleOrDefault(x => x.AssetId == assetId);
             if (asset == null)
                 throw new Exception($"Record cannot be found for {assetId.ToString()}");
 
-            // act
-            SaveAssets(oldAssets.ToList(), asset, null, DeleteAssetAction);
+            // remove the asset from array
+            var savingAssets = assets.Where(x => x.AssetId != asset.AssetId);
+            SaveAssets(year, savingAssets);
 
             return new MsgResult<string>();
         }
@@ -147,15 +122,61 @@ public class JsonFileAssetService : IAssetService
         }
     }
 
+    private void SaveAssets(int year, IEnumerable<Asset> assets)
+    {
+        // Get file path for the year
+        var filePath = GetFilePath(year);
+
+        // Save to the file path
+        var content = assets.OrderBy(x => x.AssetType).ThenBy(x => x.AssetName).ToArray();
+        File.WriteAllText(filePath, JsonSerializer.Serialize(content));
+    }
+    
     /// <summary>
-    ///     Get all assets from Json file.
+    ///     Check if root folder exists
     /// </summary>
-    /// <returns></returns>
-    public MsgResult<Asset[]> GetAllAssets()
+    /// <exception cref="FileNotFoundException"></exception>
+    private void CheckRootDir()
+    {
+        // If directory is not existing, create it. 
+        if (!Directory.Exists(_rootPath))
+            Directory.CreateDirectory(_rootPath);
+
+        // Get current year as yyyy
+        var currentYear = DateTime.Now.Year;
+
+        // If no file found, create one then return.
+        var files = Directory.GetFiles(_rootPath, SearchPattern);
+        if (files.Length == 0)
+        {            
+            var filePath = Path.Combine(_rootPath, $"Asset_{currentYear}.json");
+            File.WriteAllText(filePath, JsonSerializer.Serialize(Array.Empty<Asset>()));                        
+            return;
+        }
+
+        // If found more than one, get the earliest year
+        var earliestYear = files
+            .Select(GetYearFromFilePath)
+            .MinBy(year => year);
+        
+        // Copy the previous year as the starting point
+        for (int year = earliestYear + 1; year <= currentYear; year++)
+        {
+            var prevAssetPath = $"{_rootPath}\\Asset_{year - 1}.json";
+            var currentAssetPath = $"{_rootPath}\\Asset_{year}.json";
+            if (!File.Exists(currentAssetPath))            
+                File.Copy(prevAssetPath, currentAssetPath);            
+        }
+    }
+
+    public MsgResult<Asset[]> GetAssetsByYear(int year)
     {
         try
         {
-            var assets = JsonSerializer.Deserialize<Asset[]>(File.ReadAllText(CurrentFilePath))?
+            var path = GetFilePath(year);
+
+            var assets = JsonSerializer
+                .Deserialize<Asset[]>(File.ReadAllText(path))?
                 .OrderBy(x => x.AssetType)
                 .ThenBy(x => x.AssetName)
                 .ThenByDescending(x => x.AssetDate)
@@ -169,76 +190,54 @@ public class JsonFileAssetService : IAssetService
             Console.WriteLine(e);
             throw;
         }
-    }
 
-    private void SaveAssets(List<Asset> allAssets, Asset oldAsset, Asset newAsset, string actionName)
-    {
-        var oldAssets = allAssets.ToArray();
-
-        var lastUpdatedTime = DateTime.Now;
-        switch (actionName)
-        {
-            case AddAssetAction:
-                // set timestamp
-                newAsset.LastUpdatedTime = lastUpdatedTime;
-                allAssets.Add(newAsset);
-                break;
-            case UpdateAssetAction:
-                allAssets.Remove(oldAsset);
-
-                // set timestamp
-                newAsset.LastUpdatedTime = lastUpdatedTime;
-                allAssets.Add(newAsset);
-
-                // check if AssetName has been changed
-                if (oldAsset.AssetName != newAsset.AssetName)
-                {
-                    allAssets
-                        .Where(x => x.AssetName == oldAsset.AssetName)
-                        .ToList()
-                        .ForEach(asset =>
-                        {
-                            var updatedAsset = asset with
-                            {
-                                AssetName = newAsset.AssetName,
-                                LastUpdatedTime = lastUpdatedTime
-                            };
-                            allAssets.Remove(asset);
-                            allAssets.Add(updatedAsset);
-                        });
-                }
-
-                break;
-            case DeleteAssetAction:
-                allAssets.Remove(oldAsset);
-                break;
-            default:
-                throw new Exception($"Action is not supported - {actionName}");
-        }
-
-        var newAssets =
-            allAssets
-                .OrderBy(x => x.AssetType)
-                .ThenBy(x => x.AssetName)
-                .ThenByDescending(x => x.AssetDate)
-                .ThenByDescending(x => x.LastUpdatedTime)
-                .ToArray();
-
-        // Backup the changes 
-        var assetAudit = new AssetAudit(actionName, oldAsset, newAsset, oldAssets, newAssets);
-        File.WriteAllText(AuditFilePath, JsonSerializer.Serialize(assetAudit));
-
-        // Save to the current file path
-        File.WriteAllText(CurrentFilePath, JsonSerializer.Serialize(newAssets));
     }
 
     /// <summary>
-    ///     Check if root folder exists
+    /// 
     /// </summary>
-    /// <exception cref="FileNotFoundException"></exception>
-    private void CheckRootDir()
+    /// <returns></returns>
+    public MsgResult<Dictionary<int, Asset[]>> GetYearAssetsDict()
     {
-        if (!Directory.Exists(_rootPath))
-            throw new FileNotFoundException($"Directory is not found - {_rootPath}");
+        // If no file found, create one then return.
+        var files = Directory.GetFiles(_rootPath, SearchPattern);
+        if (files.Length == 0)
+        {
+            var emptyDict = new Dictionary<int, Asset[]>();
+            return new (true, "", emptyDict);
+        }
+
+        // If found more than one file, create the dictionary
+        var actualDict = files
+            .Select(GetYearFromFilePath)
+            .ToDictionary(y => y, y => GetAssetsByYear(y).Result);
+        
+        return new (true, "", actualDict);;
     }
+
+    /// <summary>
+    /// Parse the year in the file name with the pattern of "Asset_yyyy.json", such as Asset_2023.json
+    /// </summary>
+    /// <param name="filePath"></param>
+    /// <returns>The year in the file name.</returns>
+    private static int GetYearFromFilePath(string filePath)
+    {
+    
+        var fileInfo = new FileInfo(filePath);
+        var parts = fileInfo.Name.Split('_', '.');
+        return Convert.ToInt32(parts[1]);
+    }
+    
+    private string GetFilePath(int year)
+    {
+        CheckRootDir();
+        
+        var filePath = $"{_rootPath}\\Asset_{year}.json";
+
+        if (!File.Exists(filePath))
+            throw new FileNotFoundException($"File is not found - {filePath}");
+
+        return filePath;
+    }
+
 }

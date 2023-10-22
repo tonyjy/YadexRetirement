@@ -2,5 +2,5 @@
 
 public interface IAllocationService
 {
-    MsgResult<AllocationDto[]> GetAllAllocations(Asset[] assets);
+    MsgResult<AllocationDto[]> GetAllAllocations(Dictionary<int, Asset[]> assets);
 }

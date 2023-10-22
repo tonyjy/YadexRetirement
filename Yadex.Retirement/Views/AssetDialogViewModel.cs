@@ -50,7 +50,7 @@ public class AssetDialogViewModel : BindableBase
     private void GetAssetNameList()
     {
         AssetNameList = new ObservableCollection<string>(Parent
-            .AllAssets
+            .VisibleAssets
             .Select(x => x.AssetName)
             .Distinct()
             .Where(x => !string.IsNullOrWhiteSpace(x))
@@ -211,8 +211,8 @@ public class AssetDialogViewModel : BindableBase
         var newAsset = new Asset(AssetId, AssetName, AssetAmount, AssetType, AssetDate);
 
         var (succeeded, errorMessage, result) = IsNew
-            ? Parent.AssetService.AddAsset(newAsset)
-            : Parent.AssetService.UpdateAsset(newAsset);
+            ? Parent.AssetService.AddAsset(Parent.Year, newAsset)
+            : Parent.AssetService.UpdateAsset(Parent.Year, newAsset);
 
         if (!succeeded)
             errors.Add(errorMessage);
@@ -220,5 +220,17 @@ public class AssetDialogViewModel : BindableBase
         return errors;
     }
 
+
+    public List<string> DeleteViewModel()
+    {
+        var errors = new List<string>();
+
+        var (succeeded, errorMessage, result) = Parent.AssetService.DeleteAsset(Parent.Year, AssetId);
+
+        if (!succeeded)
+            errors.Add(errorMessage);
+
+        return errors;
+    }
     #endregion
 }
